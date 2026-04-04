@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // app/api/webhooks/stripe/route.ts
 // Handles Stripe checkout.session.completed
 // Updates booking status to confirmed when deposit is paid

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // app/api/bookings/create/route.ts
 // Handles the full booking creation flow:
 //   1. Upsert customer

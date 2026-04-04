@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // app/api/driver/jobs/[id]/signature/route.ts
 // ============================================================
 // SIGNATURE SAVE + PDF REGENERATION

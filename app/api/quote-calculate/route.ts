@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // app/api/quote-calculate/route.ts
 // Calculates route distances using OpenRouteService (free, no billing required)
 // POST /api/quote-calculate

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // app/api/job-sheet/[id]/route.ts
 // ============================================================
 // JOB SHEET PDF — ON DEMAND
