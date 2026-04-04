@@ -715,10 +715,10 @@ const CONFIG = {
   // Supabase — set these in Vercel environment variables
   // The booking form reads them from the page via meta tags injected by Next.js
   // See app/booking/page.tsx — it renders this file with env vars as data attributes
-  SUPABASE_URL:  document.documentElement.dataset.supabaseUrl  || '',
-  SUPABASE_ANON: document.documentElement.dataset.supabaseAnon || '',
+  SUPABASE_URL:  document.documentElement.dataset.supabaseUrl  || 'https://ipwtvxzwbmrjjqytbdfy.supabase.co',
+  SUPABASE_ANON: document.documentElement.dataset.supabaseAnon || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlwd3R2eHp3Ym1yampxeXRiZGZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMDcxODAsImV4cCI6MjA5MDg4MzE4MH0.U7VYJaBOhxRXzhOfxM9MZpGrJQSaaVl5PJMyR4skxiU',
   // All API calls use relative paths — works on any domain, no hardcoding needed
-  BACKEND_URL:   '',
+  BACKEND_URL:   'https://caspers-transport.vercel.app',
   HOME_BASE:     'Roseworthy SA 5371, Australia',
 };
 
