@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caspers Transport — Book a Pickup</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+
+<!-- Nominatim autocomplete — no API key required -->
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:      #0D0D0D;
+    --white:      #FFFFFF;
+    --red:        #4FC1DB;
+    --red-dark:   #337D8E;
+    --red-light:  #EAF8FC;
+    --grey-100:   #F5F5F4;
+    --grey-200:   #E8E7E5;
+    --grey-300:   #CCCBC8;
+    --grey-500:   #898880;
+    --grey-700:   #3D3C39;
+    --green:      #1A7A4A;
+    --green-bg:   #EAF5EE;
+    --amber:      #B86B00;
+    --amber-bg:   #FFF3DC;
+    --radius:     6px;
+    --shadow:     0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px;
+    background: var(--grey-100);
+    color: var(--black);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  /* When embedded as iframe, remove outer padding and match dark bg */
+  body.embedded {
+    background: transparent;
+    padding: 1.5rem;
+  }
+
+  /* ---- Layout ---- */
+  .form-wrapper {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .form-header {
+    margin-bottom: 2rem;
+  }
+
+  .brand-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+    background: var(--red);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-logo svg { width: 26px; height: 26px; fill: white; }
+
+  .brand-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--black);
+    text-transform: uppercase;
+  }
+
+  .brand-name span { color: var(--red); }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    color: var(--black);
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--grey-500);
+    margin-top: 6px;
+  }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--grey-200);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey-500);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--grey-200);
+  }
+
+  /* ---- Form fields ---- */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .field-group.single { grid-template-columns: 1fr; }
+  .field-group.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+  @media (max-width: 560px) {
+    .field-group, .field-group.triple { grid-template-columns: 1fr; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--grey-700);
+    letter-spacing: 0.01em;
+  }
+
+  label .required { color: var(--red); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    color: var(--black);
+    background: var(--white);
+    border: 1.5px solid var(--grey-300);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    width: 100%;
+    transition: border-color 0.15s;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(200,40,30,0.1);
+  }
+
+  input.error, select.error, textarea.error {
+    border-color: var(--red);
+  }
+
+  .field-hint {
+    font-size: 12px;
+    color: var(--grey-500);
+  }
+
+  .field-error {
+    font-size: 12px;
+    color: var(--red);
+    display: none;
+  }
+
+  .field-error.visible { display: block; }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23898880' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+
+  /* ---- Bike builder ---- */
+  .bike-item {
+    background: var(--grey-100);
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+
+  .bike-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .bike-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--grey-700);
+  }
+
+  .btn-remove-bike {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--grey-500);
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+  }
+
+  .btn-remove-bike:hover { background: var(--red-light); color: var(--red); }
+
+  .btn-add-bike {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px dashed var(--grey-300);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--grey-500);
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    transition: all 0.15s;
+    margin-top: 0.25rem;
+  }
+
+  .btn-add-bike:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+  /* ---- Condition badge colours ---- */
+  .condition-hint {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .cond-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .cond-green { background: var(--green-bg); color: var(--green); }
+  .cond-amber { background: var(--amber-bg); color: var(--amber); }
+  .cond-red   { background: var(--red-light); color: var(--red); }
+
+  /* ---- Quote panel ---- */
+  .quote-panel {
+    background: var(--black);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: sticky;
+    top: 1rem;
+  }
+
+  .quote-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey-300);
+    margin-bottom: 1rem;
+  }
+
+  .quote-total {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .quote-total .currency {
+    font-size: 24px;
+    color: var(--grey-300);
+    margin-right: 2px;
+  }
+
+  .quote-est-time {
+    font-size: 13px;
+    color: var(--grey-500);
+    margin-bottom: 1.25rem;
+  }
+
+  .quote-breakdown {
+    border-top: 1px solid var(--grey-700);
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .quote-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--grey-300);
+  }
+
+  .quote-line.total {
+    border-top: 1px solid var(--grey-700);
+    padding-top: 8px;
+    margin-top: 4px;
+    font-weight: 600;
+    color: var(--white);
+    font-size: 15px;
+  }
+
+  .quote-line .amt { color: var(--white); font-weight: 500; }
+
+  .quote-placeholder {
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+
+  .quote-placeholder p {
+    font-size: 14px;
+    color: var(--grey-500);
+    line-height: 1.5;
+  }
+
+  .quote-calculating {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--grey-300);
+    padding: 1rem 0;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--grey-700);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .quote-error-msg {
+    display: none;
+    font-size: 13px;
+    color: #F09595;
+    padding: 0.5rem 0;
+  }
+
+  /* ---- Payment choice ---- */
+  .payment-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    .payment-options { grid-template-columns: 1fr; }
+  }
+
+  .payment-option {
+    position: relative;
+  }
+
+  .payment-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .payment-option label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 1rem;
+    border: 1.5px solid var(--grey-200);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--black);
+  }
+
+  .payment-option label .desc {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--grey-500);
+  }
+
+  .payment-option input:checked + label {
+    border-color: var(--red);
+    background: var(--red-light);
+  }
+
+  .payment-option label:hover { border-color: var(--grey-500); }
+
+  /* ---- Submit ---- */
+  .btn-submit {
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-submit:hover { background: var(--red-dark); }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit:disabled { background: var(--grey-300); cursor: not-allowed; }
+
+  /* ---- Success screen ---- */
+  #success-screen {
+    display: none;
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .success-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--green-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+
+  .success-icon svg { width: 32px; height: 32px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+
+  #success-screen h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  #success-screen p {
+    font-size: 15px;
+    color: var(--grey-500);
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ---- General submit error ---- */
+  .submit-error {
+    display: none;
+    background: var(--red-light);
+    border: 1px solid #F0ADAA;
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    font-size: 14px;
+    color: var(--red-dark);
+    margin-bottom: 1rem;
+  }
+
+  .submit-error.visible { display: block; }
+
+  /* ---- Loading overlay ---- */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.8);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 15px;
+    color: var(--grey-700);
+    font-weight: 500;
+  }
+
+  .loading-overlay .spinner {
+    width: 28px;
+    height: 28px;
+    border-width: 3px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <span>Submitting your booking...</span>
+</div>
+
+<div class="form-wrapper">
+
+  <!-- Header -->
+  <div class="form-header">
+    <div class="brand-bar">
+      <div class="brand-logo-img">
+        <img src="data:image/png;base64,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" alt="Caspers Transport" style="height:44px;width:auto;display:block;">
+      </div>
+    </div>
+    <h1>Book a Pickup</h1>
+    <p class="subtitle">Door-to-door motorbike transport across metro and country South Australia. Fill in your details for an instant quote.</p>
+  </div>
+
+  <!-- Main form -->
+  <form id="booking-form" novalidate>
+
+    <!-- Your details -->
+    <div class="card">
+      <div class="card-title">Your Details</div>
+      <div class="field-group">
+        <div class="field">
+          <label for="name">Full name <span class="required">*</span></label>
+          <input type="text" id="name" name="name" placeholder="John Smith" autocomplete="name">
+          <span class="field-error" id="err-name">Please enter your name.</span>
+        </div>
+        <div class="field">
+          <label for="phone">Mobile number <span class="required">*</span></label>
+          <input type="tel" id="phone" name="phone" placeholder="04XX XXX XXX" autocomplete="tel">
+          <span class="field-error" id="err-phone">Please enter a valid mobile number.</span>
+        </div>
+      </div>
+      <div class="field-group single">
+        <div class="field">
+          <label for="email">Email address <span class="required">*</span></label>
+          <input type="email" id="email" name="email" placeholder="you@email.com" autocomplete="email">
+          <span class="field-error" id="err-email">Please enter a valid email address.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pickup & dropoff -->
+    <div class="card">
+      <div class="card-title">Pickup &amp; Dropoff</div>
+      <div class="field-group single">
+        <div class="field">
+          <label for="pickup-address">Pickup address <span class="required">*</span></label>
+          <input type="text" id="pickup-address" name="pickup_address" placeholder="Start typing an address..." autocomplete="off">
+          <span class="field-hint">South Australia addresses only.</span>
+          <span class="field-error" id="err-pickup">Please enter a pickup address.</span>
+        </div>
+      </div>
+      <div class="field-group single">
+        <div class="field">
+          <label for="dropoff-address">Dropoff address <span class="required">*</span></label>
+          <input type="text" id="dropoff-address" name="dropoff_address" placeholder="Start typing an address..." autocomplete="off">
+          <span class="field-hint">South Australia addresses only.</span>
+          <span class="field-error" id="err-dropoff">Please enter a dropoff address.</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label for="pickup-date">Preferred pickup date <span class="required">*</span></label>
+          <input type="date" id="pickup-date" name="pickup_date">
+          <span class="field-error" id="err-date">Please select a date.</span>
+        </div>
+        <div class="field">
+          <label for="pickup-time">Preferred time</label>
+          <input type="time" id="pickup-time" name="pickup_time">
+          <span class="field-hint">We'll confirm exact timing.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bike details -->
+    <div class="card">
+      <div class="card-title">Bike Details</div>
+
+      <div id="bikes-container">
+        <!-- Bike items injected here -->
+      </div>
+
+      <button type="button" class="btn-add-bike" id="btn-add-bike">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+        Add another bike
+      </button>
+    </div>
+
+    <!-- Notes -->
+    <div class="card">
+      <div class="card-title">Additional Notes</div>
+      <div class="field-group single">
+        <div class="field">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" placeholder="Any special instructions, access details, or anything we should know..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live quote panel -->
+    <div class="quote-panel" id="quote-panel">
+      <div class="quote-title">Your Estimated Quote</div>
+
+      <div id="quote-placeholder" class="quote-placeholder">
+        <p>Enter your pickup and dropoff addresses above to get an instant quote.</p>
+      </div>
+
+      <div id="quote-calculating" class="quote-calculating">
+        <div class="spinner"></div>
+        <span>Calculating quote...</span>
+      </div>
+
+      <div id="quote-error-msg" class="quote-error-msg"></div>
+
+      <div id="quote-result" style="display:none;">
+        <div class="quote-total">
+          <span class="currency">A$</span><span id="q-total">0</span>
+        </div>
+        <div class="quote-est-time" id="q-time"></div>
+        <div class="quote-breakdown" id="q-breakdown"></div>
+      </div>
+    </div>
+
+    <!-- Payment method -->
+    <div class="card">
+      <div class="card-title">How would you like to confirm?</div>
+      <div class="payment-options">
+        <div class="payment-option">
+          <input type="radio" name="payment_method" id="pay-stripe" value="stripe_deposit" checked>
+          <label for="pay-stripe">
+            Pay deposit online
+            <span class="desc" id="deposit-label">Secure card payment via Stripe</span>
+          </label>
+        </div>
+        <div class="payment-option">
+          <input type="radio" name="payment_method" id="pay-followup" value="follow_up">
+          <label for="pay-followup">
+            Team to follow up
+            <span class="desc">We'll contact you to arrange payment</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-error" id="submit-error"></div>
+
+    <button type="submit" class="btn-submit" id="btn-submit">
+      Request Booking
+    </button>
+
+    <p style="font-size:12px;color:#898880;text-align:center;margin-top:0.75rem;line-height:1.5;">
+      By submitting you agree to be contacted by the Caspers Transport team to confirm your booking.
+      Service area: metro and country South Australia only. Quote is an estimate — final price confirmed before booking is locked in.
+    </p>
+
+  </form>
+
+  <!-- Success screen -->
+  <div id="success-screen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2>Booking Requested</h2>
+    <p>Thanks! We've received your request and sent a quote to your email. The Caspers Transport team will confirm your booking shortly.</p>
+  </div>
+
+</div><!-- /form-wrapper -->
+
+<script>
+// ============================================================
+// CONFIG — replace with your actual values
+// ============================================================
+const CONFIG = {
+  // Supabase — set these in Vercel environment variables
+  // The booking form reads them from the page via meta tags injected by Next.js
+  // See app/booking/page.tsx — it renders this file with env vars as data attributes
+  SUPABASE_URL:  document.documentElement.dataset.supabaseUrl  || '',
+  SUPABASE_ANON: document.documentElement.dataset.supabaseAnon || '',
+  // All API calls use relative paths — works on any domain, no hardcoding needed
+  BACKEND_URL:   '',
+  HOME_BASE:     'Roseworthy SA 5371, Australia',
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let bikeCount   = 0;
+let quoteData   = null;
+let rateCard    = null;
+let pickupCoords  = null;
+let dropoffCoords = null;
+let quoteTimer  = null;
+
+// ============================================================
+// BIKE BUILDER
+// ============================================================
+const BIKE_TYPES = [
+  { value: '',                  label: 'Select bike type...' },
+  { value: 'road',              label: 'Road bike' },
+  { value: 'cruiser',           label: 'Cruiser' },
+  { value: 'sports',            label: 'Sports bike' },
+  { value: 'dirt_enduro',       label: 'Dirt / Enduro' },
+  { value: 'scooter',           label: 'Scooter / Moped' },
+  { value: 'adventure',         label: 'Adventure bike' },
+  { value: 'vintage_classic',   label: 'Vintage / Classic' },
+  { value: 'custom_build',      label: 'Custom build' },
+  { value: 'project_non_runner',label: 'Project / Non-runner' },
+  { value: 'other',             label: 'Other' },
+];
+
+const BIKE_CONDITIONS = [
+  { value: '',                 label: 'Select condition...' },
+  { value: 'running_rideable', label: 'Running and rideable', badge: 'green' },
+  { value: 'non_runner',       label: 'Non-runner (needs pushing)', badge: 'amber' },
+  { value: 'broken_seized',    label: 'Broken down / Seized', badge: 'red' },
+  { value: 'custom_part_built',label: 'Custom / Partially built', badge: 'amber' },
+  { value: 'stripped_pieces',  label: 'Stripped / In pieces', badge: 'red' },
+];
+
+function addBike() {
+  bikeCount++;
+  const container = document.getElementById('bikes-container');
+  const div = document.createElement('div');
+  div.className = 'bike-item';
+  div.id = `bike-${bikeCount}`;
+  div.dataset.bikeId = bikeCount;
+
+  div.innerHTML = `
+    <div class="bike-item-header">
+      <span class="bike-label">Bike ${bikeCount}</span>
+      ${bikeCount > 1 ? `<button type="button" class="btn-remove-bike" onclick="removeBike(${bikeCount})">Remove</button>` : ''}
+    </div>
+    <div class="field-group">
+      <div class="field">
+        <label>Bike type <span class="required">*</span></label>
+        <select name="bike_type_${bikeCount}" id="bike-type-${bikeCount}" onchange="scheduleQuote()">
+          ${BIKE_TYPES.map(t => `<option value="${t.value}">${t.label}</option>`).join('')}
+        </select>
+        <span class="field-error" id="err-bike-type-${bikeCount}">Please select a bike type.</span>
+      </div>
+      <div class="field">
+        <label>Condition <span class="required">*</span></label>
+        <select name="bike_condition_${bikeCount}" id="bike-condition-${bikeCount}" onchange="scheduleQuote()">
+          ${BIKE_CONDITIONS.map(c => `<option value="${c.value}">${c.label}</option>`).join('')}
+        </select>
+        <span class="field-error" id="err-bike-condition-${bikeCount}">Please select a condition.</span>
+      </div>
+    </div>
+    <div class="field-group triple">
+      <div class="field">
+        <label>Make</label>
+        <input type="text" name="bike_make_${bikeCount}" placeholder="e.g. Honda">
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <input type="text" name="bike_model_${bikeCount}" placeholder="e.g. CBR600RR">
+      </div>
+      <div class="field">
+        <label>Year</label>
+        <input type="text" name="bike_year_${bikeCount}" placeholder="e.g. 2019" maxlength="4">
+      </div>
+    </div>
+  `;
+
+  container.appendChild(div);
+  updateBikeNumbers();
+  scheduleQuote();
+}
+
+function removeBike(id) {
+  document.getElementById(`bike-${id}`).remove();
+  bikeCount = document.querySelectorAll('.bike-item').length;
+  updateBikeNumbers();
+  scheduleQuote();
+}
+
+function updateBikeNumbers() {
+  document.querySelectorAll('.bike-item').forEach((item, i) => {
+    item.querySelector('.bike-label').textContent = `Bike ${i + 1}`;
+  });
+}
+
+// ============================================================
+// NOMINATIM ADDRESS AUTOCOMPLETE (free — no API key)
+// ============================================================
+
+function showAddressError(fieldId, msg) {
+  const input = document.getElementById(fieldId);
+  const errId = fieldId === 'pickup-address' ? 'err-pickup' : 'err-dropoff';
+  const err   = document.getElementById(errId);
+  input.classList.add('error');
+  err.textContent = msg;
+  err.classList.add('visible');
+}
+
+function clearAddressError(fieldId) {
+  const input = document.getElementById(fieldId);
+  const errId = fieldId === 'pickup-address' ? 'err-pickup' : 'err-dropoff';
+  const err   = document.getElementById(errId);
+  input.classList.remove('error');
+  err.textContent = errId === 'err-pickup' ? 'Please enter a pickup address.' : 'Please enter a dropoff address.';
+  err.classList.remove('visible');
+}
+
+// Inject autocomplete dropdown styles once
+(function injectAutocompleteStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .ac-wrapper { position: relative; }
+    .ac-dropdown {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+      background: #fff; border: 1px solid #CCCBC8; border-top: none;
+      border-radius: 0 0 6px 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-height: 220px; overflow-y: auto;
+    }
+    .ac-item {
+      padding: 10px 14px; font-size: 14px; cursor: pointer;
+      border-bottom: 1px solid #F0EFED; line-height: 1.4;
+    }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover, .ac-item.active { background: #EAF8FC; }
+    .ac-item strong { display: block; font-weight: 600; font-size: 14px; }
+    .ac-item span { color: #898880; font-size: 12px; }
+    .ac-loading { padding: 10px 14px; font-size: 13px; color: #898880; }
+  `;
+  document.head.appendChild(style);
+})();
+
+function setupNominatimAutocomplete(inputId, onSelect) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  // Wrap input in a relative-positioned div for dropdown positioning
+  const wrapper = document.createElement('div');
+  wrapper.className = 'ac-wrapper';
+  input.parentNode.insertBefore(wrapper, input);
+  wrapper.appendChild(input);
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'ac-dropdown';
+  dropdown.style.display = 'none';
+  wrapper.appendChild(dropdown);
+
+  let debounceTimer = null;
+  let activeIndex = -1;
+  let currentResults = [];
+
+  function closeDropdown() {
+    dropdown.style.display = 'none';
+    activeIndex = -1;
+    currentResults = [];
+  }
+
+  function renderResults(results) {
+    currentResults = results;
+    activeIndex = -1;
+    dropdown.innerHTML = '';
+    if (!results.length) {
+      dropdown.innerHTML = '<div class="ac-loading">No SA addresses found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+    results.forEach((r, i) => {
+      const item = document.createElement('div');
+      item.className = 'ac-item';
+      const parts = r.display_name.split(', ');
+      const main = parts.slice(0, 2).join(', ');
+      const sub  = parts.slice(2).join(', ');
+      item.innerHTML = `<strong>${main}</strong><span>${sub}</span>`;
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectResult(r);
+      });
+      dropdown.appendChild(item);
+    });
+    dropdown.style.display = 'block';
+  }
+
+  function selectResult(r) {
+    input.value = r.display_name;
+    closeDropdown();
+    clearAddressError(inputId);
+    onSelect({
+      lat: parseFloat(r.lat),
+      lng: parseFloat(r.lon),
+      address: r.display_name,
+    });
+  }
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    onSelect(null); // clear coords while typing
+    if (q.length < 4) { closeDropdown(); return; }
+    clearTimeout(debounceTimer);
+    dropdown.innerHTML = '<div class="ac-loading">Searching...</div>';
+    dropdown.style.display = 'block';
+    debounceTimer = setTimeout(async () => {
+      try {
+        // Bias results toward SA with viewbox; filter server-side by state
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ', South Australia')}`
+          + `&format=json&countrycodes=au&addressdetails=1&limit=6`
+          + `&viewbox=128.9,-38.1,141.1,-25.9&bounded=0`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        // Keep only SA results
+        const sa = data.filter(r => r.address?.state === 'South Australia');
+        renderResults(sa);
+      } catch {
+        closeDropdown();
+      }
+    }, 400);
+  });
+
+  // Keyboard navigation
+  input.addEventListener('keydown', (e) => {
+    const items = dropdown.querySelectorAll('.ac-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault();
+      selectResult(currentResults[activeIndex]);
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  });
+
+  input.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+}
+
+// Initialise both address fields
+setupNominatimAutocomplete('pickup-address', (coords) => {
+  pickupCoords = coords;
+  if (coords) scheduleQuote();
+});
+
+setupNominatimAutocomplete('dropoff-address', (coords) => {
+  dropoffCoords = coords;
+  if (coords) scheduleQuote();
+});
+
+// ============================================================
+// QUOTE CALCULATOR
+// ============================================================
+function scheduleQuote() {
+  clearTimeout(quoteTimer);
+  quoteTimer = setTimeout(calculateQuote, 800);
+}
+
+async function fetchRateCard() {
+  if (rateCard) return rateCard;
+  try {
+    const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/rate_card?select=*&limit=1`, {
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON,
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}`,
+      }
+    });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      rateCard = data[0];
+      // Update deposit label
+      const pct = rateCard.stripe_deposit_pct || 20;
+      document.getElementById('deposit-label').textContent =
+        `${pct}% deposit via Stripe`;
+    }
+  } catch (e) {
+    console.warn('Rate card fetch failed, using defaults');
+    rateCard = {
+      base_callout_aud:         120.00,
+      km_rate_loaded:           2.20,
+      km_rate_return:           1.10,
+      surcharge_non_runner:     50.00,
+      surcharge_seized:         80.00,
+      surcharge_stripped:       100.00,
+      surcharge_custom_build:   50.00,
+      multi_bike_discount_pct:  20.00,
+      overnight_allowance:      180.00,
+      load_time_standard_min:   15,
+      load_time_non_runner_min: 30,
+      load_time_stripped_min:   45,
+      buffer_minutes:           30,
+      fuel_levy_pct:            5.00,
+      fuel_levy_active:         false,
+      stripe_deposit_pct:       20.00,
+    };
+  }
+  return rateCard;
+}
+
+async function calculateQuote() {
+  if (!pickupCoords || !dropoffCoords) return;
+
+  const bikes = getBikeData();
+  if (bikes.length === 0) return;
+
+  // Show calculating
+  document.getElementById('quote-placeholder').style.display    = 'none';
+  document.getElementById('quote-result').style.display         = 'none';
+  document.getElementById('quote-error-msg').style.display      = 'none';
+  document.getElementById('quote-calculating').style.display    = 'flex';
+
+  try {
+    const rc = await fetchRateCard();
+
+    // Call our Next.js API route which proxies Google Maps Distance Matrix
+    const res = await fetch(`${CONFIG.BACKEND_URL}/api/quote-calculate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pickupAddress:  pickupCoords.address,
+        dropoffAddress: dropoffCoords.address,
+        bikes,
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Calculation failed');
+
+    const { kmToPickup, kmLoaded, kmReturn, driveToPickupMinutes, driveLoadedMinutes, driveReturnMinutes } = data;
+
+    // Build quote from rate card
+    const q = buildQuote(rc, bikes, kmToPickup, kmLoaded, kmReturn,
+      driveToPickupMinutes, driveLoadedMinutes, driveReturnMinutes);
+
+    quoteData = { ...q, kmToPickup, kmLoaded, kmReturn };
+    renderQuote(q);
+
+  } catch (err) {
+    document.getElementById('quote-calculating').style.display = 'none';
+    const errEl = document.getElementById('quote-error-msg');
+    errEl.style.display = 'block';
+    errEl.textContent = 'Unable to calculate quote right now. Submit your booking and we\'ll quote you by email.';
+  }
+}
+
+function buildQuote(rc, bikes, kmToPickup, kmLoaded, kmReturn,
+  driveToPickupMin, driveLoadedMin, driveReturnMin) {
+
+  const base = parseFloat(rc.base_callout_aud);
+  const kmCostLoaded = parseFloat(rc.km_rate_loaded) * (kmToPickup + kmLoaded);
+  const kmCostReturn = parseFloat(rc.km_rate_return) * kmReturn;
+
+  // Condition surcharges
+  let condSurcharge = 0;
+  let maxLoadTime   = parseInt(rc.load_time_standard_min);
+
+  bikes.forEach((bike, i) => {
+    let s = 0;
+    if (bike.condition === 'non_runner')       { s = parseFloat(rc.surcharge_non_runner); maxLoadTime = Math.max(maxLoadTime, parseInt(rc.load_time_non_runner_min)); }
+    if (bike.condition === 'broken_seized')    { s = parseFloat(rc.surcharge_seized);    maxLoadTime = Math.max(maxLoadTime, parseInt(rc.load_time_non_runner_min)); }
+    if (bike.condition === 'stripped_pieces')  { s = parseFloat(rc.surcharge_stripped);  maxLoadTime = Math.max(maxLoadTime, parseInt(rc.load_time_stripped_min)); }
+    if (bike.condition === 'custom_part_built'){ s = parseFloat(rc.surcharge_custom_build); }
+    // Multi-bike discount on 2nd+ bike surcharge
+    if (i > 0) s = s * (1 - parseFloat(rc.multi_bike_discount_pct) / 100);
+    condSurcharge += s;
+  });
+
+  // Multi-bike discount on km cost for extra bikes
+  let multiDiscount = 0;
+  if (bikes.length > 1) {
+    multiDiscount = (kmCostLoaded + kmCostReturn) * (parseFloat(rc.multi_bike_discount_pct) / 100) * (bikes.length - 1) / bikes.length;
+  }
+
+  const subtotal = base + kmCostLoaded + kmCostReturn + condSurcharge - multiDiscount;
+
+  // Fuel levy
+  let fuelLevy = 0;
+  if (rc.fuel_levy_active) {
+    fuelLevy = subtotal * (parseFloat(rc.fuel_levy_pct) / 100);
+  }
+
+  const total = subtotal + fuelLevy;
+
+  // Time calculation
+  const totalMinutes = driveToPickupMin + maxLoadTime + driveLoadedMin + driveReturnMin + parseInt(rc.buffer_minutes);
+  const hours   = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const timeStr = hours > 0
+    ? `${hours}h ${minutes > 0 ? minutes + 'm' : ''} total job time (est.)`
+    : `${minutes}m total job time (est.)`;
+
+  return {
+    base,
+    kmCostLoaded: parseFloat(kmCostLoaded.toFixed(2)),
+    kmCostReturn: parseFloat(kmCostReturn.toFixed(2)),
+    condSurcharge: parseFloat(condSurcharge.toFixed(2)),
+    multiDiscount: parseFloat(multiDiscount.toFixed(2)),
+    subtotal: parseFloat(subtotal.toFixed(2)),
+    fuelLevy: parseFloat(fuelLevy.toFixed(2)),
+    fuelLevyActive: rc.fuel_levy_active,
+    fuelLevyPct: rc.fuel_levy_pct,
+    total: parseFloat(total.toFixed(2)),
+    totalMinutes,
+    timeStr,
+    depositPct: parseFloat(rc.stripe_deposit_pct),
+    deposit: parseFloat((total * parseFloat(rc.stripe_deposit_pct) / 100).toFixed(2)),
+  };
+}
+
+function renderQuote(q) {
+  document.getElementById('quote-calculating').style.display = 'none';
+  document.getElementById('quote-result').style.display = 'block';
+
+  document.getElementById('q-total').textContent = formatAud(q.total);
+  document.getElementById('q-time').textContent  = q.timeStr;
+
+  const lines = [
+    { label: 'Base call-out',          amt: q.base },
+    { label: 'Transport (loaded)',      amt: q.kmCostLoaded },
+    { label: 'Return run',             amt: q.kmCostReturn },
+  ];
+
+  if (q.condSurcharge > 0)
+    lines.push({ label: 'Condition surcharge', amt: q.condSurcharge });
+  if (q.multiDiscount > 0)
+    lines.push({ label: 'Multi-bike discount', amt: -q.multiDiscount });
+  if (q.fuelLevyActive && q.fuelLevy > 0)
+    lines.push({ label: `Fuel levy (${q.fuelLevyPct}%)`, amt: q.fuelLevy });
+
+  lines.push({ label: 'Total (inc. GST)', amt: q.total, isTotal: true });
+
+  document.getElementById('q-breakdown').innerHTML = lines.map(l => `
+    <div class="quote-line${l.isTotal ? ' total' : ''}">
+      <span>${l.label}</span>
+      <span class="amt">${l.amt < 0 ? '-' : ''}A$${formatAud(Math.abs(l.amt))}</span>
+    </div>
+  `).join('');
+
+  // Update deposit label
+  document.getElementById('deposit-label').textContent =
+    `A$${formatAud(q.deposit)} deposit via Stripe`;
+}
+
+function formatAud(val) {
+  return parseFloat(val).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function getBikeData() {
+  const items = document.querySelectorAll('.bike-item');
+  return Array.from(items).map((item, i) => {
+    const n = i + 1;
+    return {
+      type:      document.getElementById(`bike-type-${item.dataset.bikeId}`)?.value || '',
+      condition: document.getElementById(`bike-condition-${item.dataset.bikeId}`)?.value || '',
+    };
+  }).filter(b => b.type && b.condition);
+}
+
+// ============================================================
+// FORM VALIDATION
+// ============================================================
+function validateForm() {
+  let valid = true;
+
+  function check(id, errId, condition) {
+    const el  = document.getElementById(id);
+    const err = document.getElementById(errId);
+    if (!err) return;
+    if (!condition(el.value)) {
+      el.classList.add('error');
+      err.classList.add('visible');
+      valid = false;
+    } else {
+      el.classList.remove('error');
+      err.classList.remove('visible');
+    }
+  }
+
+  check('name',  'err-name',  v => v.trim().length > 1);
+  check('phone', 'err-phone', v => /^(\+?61|0)[2-9]\d{8}$/.test(v.replace(/\s/g, '')));
+  check('email', 'err-email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+  // Address must be filled AND resolved to SA coords via Places autocomplete
+  const pickupEl   = document.getElementById('pickup-address');
+  const dropoffEl  = document.getElementById('dropoff-address');
+  const pickupErr  = document.getElementById('err-pickup');
+  const dropoffErr = document.getElementById('err-dropoff');
+
+  if (!pickupEl.value.trim() || !pickupCoords) {
+    pickupEl.classList.add('error');
+    pickupErr.textContent = pickupEl.value.trim()
+      ? 'Please select an address from the suggestions — we only service South Australia.'
+      : 'Please enter a pickup address.';
+    pickupErr.classList.add('visible');
+    valid = false;
+  } else {
+    pickupEl.classList.remove('error');
+    pickupErr.classList.remove('visible');
+  }
+
+  if (!dropoffEl.value.trim() || !dropoffCoords) {
+    dropoffEl.classList.add('error');
+    dropoffErr.textContent = dropoffEl.value.trim()
+      ? 'Please select an address from the suggestions — we only service South Australia.'
+      : 'Please enter a dropoff address.';
+    dropoffErr.classList.add('visible');
+    valid = false;
+  } else {
+    dropoffEl.classList.remove('error');
+    dropoffErr.classList.remove('visible');
+  }
+  check('pickup-date', 'err-date', v => {
+    if (!v) return false;
+    const d = new Date(v);
+    const today = new Date(); today.setHours(0,0,0,0);
+    return d >= today;
+  });
+
+  // Validate bike fields
+  document.querySelectorAll('.bike-item').forEach((item) => {
+    const id = item.dataset.bikeId;
+    const typeEl = document.getElementById(`bike-type-${id}`);
+    const condEl = document.getElementById(`bike-condition-${id}`);
+
+    if (typeEl && !typeEl.value) {
+      typeEl.classList.add('error');
+      const err = document.getElementById(`err-bike-type-${id}`);
+      if (err) err.classList.add('visible');
+      valid = false;
+    }
+
+    if (condEl && !condEl.value) {
+      condEl.classList.add('error');
+      const err = document.getElementById(`err-bike-condition-${id}`);
+      if (err) err.classList.add('visible');
+      valid = false;
+    }
+  });
+
+  return valid;
+}
+
+// ============================================================
+// FORM SUBMISSION
+// ============================================================
+document.getElementById('booking-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  document.getElementById('submit-error').classList.remove('visible');
+
+  if (!validateForm()) {
+    document.querySelector('.error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const overlay = document.getElementById('loading-overlay');
+  overlay.style.display = 'flex';
+
+  try {
+    const formData = {
+      name:           document.getElementById('name').value.trim(),
+      email:          document.getElementById('email').value.trim().toLowerCase(),
+      phone:          document.getElementById('phone').value.trim(),
+      pickup_address: document.getElementById('pickup-address').value.trim(),
+      pickup_lat:     pickupCoords?.lat || null,
+      pickup_lng:     pickupCoords?.lng || null,
+      dropoff_address: document.getElementById('dropoff-address').value.trim(),
+      dropoff_lat:    dropoffCoords?.lat || null,
+      dropoff_lng:    dropoffCoords?.lng || null,
+      pickup_date:    document.getElementById('pickup-date').value,
+      pickup_time:    document.getElementById('pickup-time').value || null,
+      payment_method: document.querySelector('input[name="payment_method"]:checked').value,
+      notes:          document.getElementById('notes').value.trim(),
+      bikes: Array.from(document.querySelectorAll('.bike-item')).map(item => {
+        const id = item.dataset.bikeId;
+        return {
+          type:      document.getElementById(`bike-type-${id}`)?.value,
+          condition: document.getElementById(`bike-condition-${id}`)?.value,
+          make:      document.querySelector(`[name="bike_make_${id}"]`)?.value?.trim() || '',
+          model:     document.querySelector(`[name="bike_model_${id}"]`)?.value?.trim() || '',
+          year:      document.querySelector(`[name="bike_year_${id}"]`)?.value?.trim() || '',
+        };
+      }),
+      quote: quoteData,
+    };
+
+    const res = await fetch(`${CONFIG.BACKEND_URL}/api/bookings/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+
+    const result = await res.json();
+
+    if (!result.success) throw new Error(result.error || 'Booking failed');
+
+    // If Stripe deposit selected and quote available, redirect to Stripe
+    if (formData.payment_method === 'stripe_deposit' && result.stripeUrl) {
+      window.location.href = result.stripeUrl;
+      return;
+    }
+
+    // Show success screen
+    overlay.style.display = 'none';
+    document.getElementById('booking-form').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    notifyParentSuccess();
+
+  } catch (err) {
+    overlay.style.display = 'none';
+    const errEl = document.getElementById('submit-error');
+    errEl.textContent = 'Something went wrong. Please try again or call us directly.';
+    errEl.classList.add('visible');
+    console.error(err);
+  }
+});
+
+// postMessage: report height to parent (website iframe)
+function reportHeight() {
+  const h = document.body.scrollHeight;
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'caspers-booking-height', height: h }, '*');
+  }
+}
+const ro = new ResizeObserver(reportHeight);
+ro.observe(document.body);
+reportHeight();
+
+// postMessage: notify parent on successful booking submission
+function notifyParentSuccess() {
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'caspers-booking-success' }, '*');
+  }
+}
+
+// Set minimum date to today
+const dateInput = document.getElementById('pickup-date');
+const today = new Date();
+dateInput.min = today.toISOString().split('T')[0];
+
+// Detect iframe embed
+if (window.parent !== window) {
+  document.body.classList.add('embedded');
+}
+
+// Init with one bike
+addBike();
+
+document.getElementById('btn-add-bike').addEventListener('click', addBike);
+
+// Trigger quote when addresses typed manually (fallback if Places not selected)
+['pickup-address', 'dropoff-address'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => scheduleQuote());
+});
+</script>
+
+</body>
+</html>

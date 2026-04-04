@@ -1,0 +1,24 @@
+{
+  "crons": [
+    {
+      "path": "/api/automation/reminders-24h",
+      "schedule": "30 8 * * *",
+      "comment": "24h reminder emails — fires daily at 6:00 PM ACST (08:30 UTC). Sends reminder to all confirmed bookings with pickup tomorrow."
+    },
+    {
+      "path": "/api/automation/reminders-2h",
+      "schedule": "*/30 * * * *",
+      "comment": "2h SMS reminders — fires every 30 min. Checks if any confirmed job has pickup in 110–150 min window and sends SMS."
+    },
+    {
+      "path": "/api/automation/invoices",
+      "schedule": "*/15 * * * *",
+      "comment": "Post-job invoices — fires every 15 min. Finds newly completed bookings without an invoice sent and dispatches."
+    },
+    {
+      "path": "/api/automation/review-requests",
+      "schedule": "0 1 * * *",
+      "comment": "Review request emails — fires daily at 10:30 AM ACST (01:00 UTC). Targets completed jobs from 3 days ago."
+    }
+  ]
+}

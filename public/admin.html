@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en" data-supabase-url="" data-supabase-anon="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caspers Transport — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:        #0F0F0E;
+  --bg2:       #181817;
+  --bg3:       #222220;
+  --bg4:       #2C2C29;
+  --border:    #333330;
+  --border2:   #444440;
+  --text:      #F0EFE8;
+  --text2:     #9E9D95;
+  --text3:     #5C5C58;
+  --red:       #4FC1DB;
+  --red2:      #409EB3;
+  --red-bg:    rgba(79,193,219,0.12);
+  --red-border:rgba(79,193,219,0.3);
+  --green:     #2E9E5B;
+  --green-bg:  rgba(46,158,91,0.12);
+  --amber:     #D4880A;
+  --amber-bg:  rgba(212,136,10,0.12);
+  --blue:      #2A7FD4;
+  --blue-bg:   rgba(42,127,212,0.12);
+  --purple:    #7B5EA7;
+  --purple-bg: rgba(123,94,167,0.12);
+  --radius:    5px;
+  --font-disp: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+}
+
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;overflow:hidden}
+
+/* ── LAYOUT ── */
+.shell{display:flex;height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:0;overflow:hidden;
+}
+
+.sidebar-logo{
+  padding:20px 18px 16px;
+  border-bottom:1px solid var(--border);
+}
+.logo-mark{
+  display:flex;align-items:center;gap:10px;
+}
+.logo-icon{
+  width:32px;height:32px;background:var(--red);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.logo-icon svg{width:18px;height:18px;fill:white}
+.logo-text{
+  font-family:var(--font-disp);font-size:16px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.04em;color:var(--text);
+  line-height:1.1;
+}
+.logo-text span{color:var(--red)}
+
+.nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-section{
+  font-size:10px;font-weight:700;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--text3);
+  padding:12px 18px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 18px;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--text2);
+  transition:all 0.15s;border:none;background:none;width:100%;text-align:left;
+  position:relative;
+}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--text);background:var(--bg3)}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:4px;bottom:4px;
+  width:3px;background:var(--red);border-radius:0 2px 2px 0;
+}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.7}
+.nav-item.active svg,.nav-item:hover svg{opacity:1}
+
+.nav-badge{
+  margin-left:auto;background:var(--red);color:white;
+  font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;
+}
+
+.sidebar-footer{
+  padding:14px 18px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.avatar{
+  width:30px;height:30px;background:var(--red-bg);border:1px solid var(--red-border);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--red);flex-shrink:0;
+}
+.sidebar-user-name{font-size:12px;font-weight:600;color:var(--text)}
+.sidebar-user-role{font-size:11px;color:var(--text3)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{
+  height:52px;flex-shrink:0;background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+}
+.page-title{
+  font-family:var(--font-disp);font-size:20px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.04em;color:var(--text);
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+
+.btn{
+  font-family:var(--font-body);font-size:13px;font-weight:600;
+  padding:7px 14px;border-radius:var(--radius);cursor:pointer;
+  transition:all 0.15s;border:1px solid var(--border2);
+  background:var(--bg3);color:var(--text2);
+}
+.btn:hover{background:var(--bg4);color:var(--text)}
+.btn-primary{background:var(--red);border-color:var(--red);color:white}
+.btn-primary:hover{background:var(--red2);border-color:var(--red2);color:white}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--text2)}
+.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ── VIEWS ── */
+.view{display:none}
+.view.active{display:block}
+
+/* ── METRICS STRIP ── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 18px;
+}
+.metric-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:6px}
+.metric-value{font-family:var(--font-disp);font-size:28px;font-weight:700;color:var(--text);line-height:1}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.metric-up{color:var(--green)}
+.metric-down{color:var(--red)}
+
+/* ── SECTION HEADERS ── */
+.section-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.section-title{
+  font-family:var(--font-disp);font-size:14px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.08em;color:var(--text2);
+}
+
+/* ── TODAY JOBS ── */
+.today-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:24px}
+
+.job-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 16px;cursor:pointer;
+  transition:all 0.15s;position:relative;overflow:hidden;
+}
+.job-card:hover{border-color:var(--border2);background:var(--bg3)}
+.job-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+}
+.job-card.status-confirmed::before{background:var(--green)}
+.job-card.status-in_transit::before{background:var(--blue)}
+.job-card.status-pending_quote::before{background:var(--amber)}
+.job-card.status-quote_sent::before{background:var(--purple)}
+.job-card.status-completed::before{background:var(--text3)}
+
+.job-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.job-name{font-size:14px;font-weight:600;color:var(--text)}
+.job-time{font-size:12px;color:var(--text3);margin-top:1px}
+.job-route{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.4}
+.job-route .arrow{color:var(--text3);margin:0 4px}
+.job-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ── STATUS BADGE ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;
+  white-space:nowrap;
+}
+.badge-confirmed   {background:var(--green-bg);color:var(--green)}
+.badge-in_transit  {background:var(--blue-bg);color:var(--blue)}
+.badge-pending     {background:var(--amber-bg);color:var(--amber)}
+.badge-quote_sent  {background:var(--purple-bg);color:var(--purple)}
+.badge-completed   {background:var(--bg4);color:var(--text3)}
+.badge-cancelled   {background:var(--red-bg);color:var(--red)}
+.badge-needs_review{background:var(--red-bg);color:var(--red)}
+
+/* ── REVIEW QUEUE ── */
+.review-queue{
+  background:var(--bg2);border:1px solid var(--red-border);
+  border-radius:var(--radius);margin-bottom:24px;overflow:hidden;
+}
+.review-queue-header{
+  background:var(--red-bg);padding:10px 16px;
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;color:var(--red);
+  text-transform:uppercase;letter-spacing:0.06em;
+}
+.review-item{
+  display:flex;align-items:center;padding:12px 16px;
+  border-bottom:1px solid var(--border);cursor:pointer;
+  transition:background 0.1s;
+}
+.review-item:last-child{border-bottom:none}
+.review-item:hover{background:var(--bg3)}
+.review-item-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.review-item-info{font-size:12px;color:var(--text2);flex:2}
+.review-item-reason{font-size:11px;color:var(--amber);margin-left:auto;font-weight:600}
+
+/* ── WEEK STRIP ── */
+.week-strip{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:0;overflow:hidden;
+}
+.week-days{display:grid;grid-template-columns:repeat(7,1fr)}
+.week-day{border-right:1px solid var(--border);padding:10px 8px;min-height:80px}
+.week-day:last-child{border-right:none}
+.week-day-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text3);margin-bottom:6px;
+}
+.week-day.today .week-day-label{color:var(--red)}
+.week-day-num{
+  font-family:var(--font-disp);font-size:18px;font-weight:700;
+  color:var(--text2);margin-bottom:6px;
+}
+.week-day.today .week-day-num{color:var(--text)}
+.week-event{
+  font-size:10px;font-weight:600;padding:2px 5px;border-radius:3px;
+  margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  cursor:pointer;
+}
+.week-event.confirmed  {background:rgba(46,158,91,0.2);color:#5FCC88}
+.week-event.in_transit {background:rgba(42,127,212,0.2);color:#6EB8FF}
+.week-event.pending    {background:rgba(212,136,10,0.2);color:#F0A830}
+.week-event.completed  {background:var(--bg4);color:var(--text3)}
+
+/* ── BOOKINGS TABLE ── */
+.filter-bar{
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;
+}
+.status-tabs{display:flex;gap:4px}
+.status-tab{
+  font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;
+  cursor:pointer;border:1px solid var(--border);background:none;
+  color:var(--text2);transition:all 0.15s;
+}
+.status-tab:hover{background:var(--bg3);color:var(--text)}
+.status-tab.active{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.search-input{
+  flex:1;min-width:160px;max-width:280px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius);padding:7px 12px;
+  font-family:var(--font-body);font-size:13px;color:var(--text);
+  outline:none;
+}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:var(--border2)}
+
+.table-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+}
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--text3);padding:10px 14px;text-align:left;
+  background:var(--bg3);border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+tbody tr{
+  border-bottom:1px solid var(--border);cursor:pointer;
+  transition:background 0.1s;
+}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--bg3)}
+tbody td{padding:11px 14px;font-size:13px;color:var(--text2);vertical-align:middle}
+tbody td.bold{color:var(--text);font-weight:600}
+tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
+
+.dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;flex-shrink:0;
+}
+
+/* ── JOB DETAIL ── */
+.detail-layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+.detail-main{}
+.detail-sidebar{}
+
+.detail-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:12px;overflow:hidden;
+}
+.detail-card-header{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.detail-card-title{
+  font-family:var(--font-disp);font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);
+}
+.detail-card-body{padding:16px}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info-item{}
+.info-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:3px}
+.info-value{font-size:13px;color:var(--text);font-weight:500;line-height:1.4}
+.info-value.large{font-family:var(--font-disp);font-size:22px;font-weight:700;color:var(--text)}
+.info-value a{color:var(--red);text-decoration:none}
+.info-value a:hover{text-decoration:underline}
+
+.route-display{
+  display:flex;align-items:stretch;gap:0;margin:4px 0;
+}
+.route-col{flex:1}
+.route-point{
+  font-size:12px;color:var(--text2);padding:10px 14px;
+  background:var(--bg3);border-radius:var(--radius);
+}
+.route-point .label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:3px}
+.route-point .addr{font-size:13px;color:var(--text);font-weight:500;line-height:1.3}
+.route-arrow{
+  display:flex;align-items:center;padding:0 10px;
+  color:var(--text3);font-size:18px;
+}
+
+.bike-detail-item{
+  background:var(--bg3);border-radius:var(--radius);padding:12px 14px;
+  margin-bottom:8px;
+}
+.bike-detail-item:last-child{margin-bottom:0}
+.bike-detail-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.bike-detail-name{font-size:13px;font-weight:600;color:var(--text)}
+
+.quote-lines{display:flex;flex-direction:column;gap:6px}
+.q-line{display:flex;justify-content:space-between;font-size:13px}
+.q-line .lbl{color:var(--text2)}
+.q-line .amt{color:var(--text);font-weight:500}
+.q-line.total{
+  border-top:1px solid var(--border);padding-top:8px;margin-top:4px;
+  font-weight:700;font-size:15px;
+}
+.q-line.total .lbl{color:var(--text)}
+.q-line.total .amt{color:var(--red);font-family:var(--font-disp);font-size:20px}
+
+.action-btns{display:flex;flex-direction:column;gap:6px}
+.action-btn{
+  width:100%;padding:9px 14px;border-radius:var(--radius);
+  font-family:var(--font-body);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.15s;border:1px solid var(--border2);
+  background:var(--bg3);color:var(--text);text-align:left;
+  display:flex;align-items:center;gap:8px;
+}
+.action-btn:hover{background:var(--bg4);border-color:var(--border2)}
+.action-btn.primary{background:var(--red);border-color:var(--red);color:white}
+.action-btn.primary:hover{background:var(--red2)}
+.action-btn svg{width:14px;height:14px;flex-shrink:0;opacity:0.7}
+
+.comms-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.comms-item:last-child{border-bottom:none}
+.comms-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;
+}
+.comms-dot.sent{background:var(--green)}
+.comms-dot.failed{background:var(--red)}
+.comms-dot.pending{background:var(--amber)}
+.comms-type{font-size:13px;color:var(--text);font-weight:500}
+.comms-meta{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── STATUS CHANGE DROPDOWN ── */
+.status-select{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:6px 10px;
+  font-family:var(--font-body);font-size:12px;font-weight:600;
+  color:var(--text);cursor:pointer;outline:none;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5C58' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  padding-right:24px;
+}
+
+/* ── CALENDAR VIEW ── */
+.cal-controls{
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;
+}
+.cal-month-label{
+  font-family:var(--font-disp);font-size:18px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.04em;color:var(--text);
+  min-width:180px;
+}
+.cal-view-tabs{display:flex;gap:4px;margin-left:auto}
+.cal-view-tab{
+  font-size:12px;font-weight:600;padding:5px 12px;border-radius:var(--radius);
+  cursor:pointer;border:1px solid var(--border);background:none;
+  color:var(--text2);transition:all 0.15s;
+}
+.cal-view-tab.active{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+
+.cal-grid-header{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  border:1px solid var(--border);border-bottom:none;border-radius:var(--radius) var(--radius) 0 0;
+  overflow:hidden;
+}
+.cal-grid-header div{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--text3);padding:8px 10px;background:var(--bg3);
+  border-right:1px solid var(--border);text-align:center;
+}
+.cal-grid-header div:last-child{border-right:none}
+
+.cal-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);
+  overflow:hidden;
+}
+.cal-cell{
+  min-height:90px;padding:6px;border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);background:var(--bg2);
+  vertical-align:top;transition:background 0.1s;
+}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell:hover{background:var(--bg3)}
+.cal-cell.other-month{background:var(--bg);opacity:0.5}
+.cal-cell.today{background:rgba(200,40,30,0.05)}
+.cal-cell-num{
+  font-family:var(--font-disp);font-size:15px;font-weight:700;
+  color:var(--text3);margin-bottom:4px;
+}
+.cal-cell.today .cal-cell-num{
+  color:white;background:var(--red);
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+}
+.cal-event{
+  font-size:10px;font-weight:600;padding:2px 5px;border-radius:3px;
+  margin-bottom:2px;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:opacity 0.1s;
+}
+.cal-event:hover{opacity:0.8}
+.cal-event.confirmed  {background:rgba(46,158,91,0.25);color:#6FDC9A;border-left:2px solid var(--green)}
+.cal-event.in_transit {background:rgba(42,127,212,0.25);color:#7EC8FF;border-left:2px solid var(--blue)}
+.cal-event.pending    {background:rgba(212,136,10,0.25);color:#F5B845;border-left:2px solid var(--amber)}
+.cal-event.completed  {background:var(--bg3);color:var(--text3);border-left:2px solid var(--text3)}
+.cal-event.drive      {background:rgba(92,92,88,0.2);color:var(--text3);border-left:2px solid var(--text3)}
+.cal-event.conflict   {border-left:2px solid var(--red)!important;outline:1px solid var(--red)}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  text-align:center;padding:48px 24px;
+  color:var(--text3);
+}
+.empty-state svg{width:40px;height:40px;opacity:0.3;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:12px 18px;font-size:13px;font-weight:600;color:var(--text);
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  transform:translateY(20px);opacity:0;
+  transition:all 0.25s;pointer-events:none;z-index:999;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 17H5a2 2 0 01-2-2V7a2 2 0 012-2h3l2 3h6l2-3h1a2 2 0 012 2v8a2 2 0 01-2 2z"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>
+        </div>
+        <div>
+          <div class="logo-text">
+            <img src="data:image/png;base64,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" alt="Caspers Transport" style="height:32px;width:auto;display:block;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-section">Main</div>
+      <button class="nav-item active" onclick="showView('overview',this)">
+        <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        Overview
+      </button>
+      <button class="nav-item" onclick="showView('bookings',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="2" x2="5" y2="6"/><line x1="11" y1="2" x2="11" y2="6"/></svg>
+        All Bookings
+        <span class="nav-badge" id="nb-pending">3</span>
+      </button>
+      <button class="nav-item" onclick="showView('calendar',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>
+        Calendar
+      </button>
+
+      <div class="nav-section">Settings</div>
+      <button class="nav-item" onclick="showView('ratecards',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M3.2 12.8l1.4-1.4M11.4 4.6l1.4-1.4"/></svg>
+        Rate Card
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar">AD</div>
+      <div>
+        <div class="sidebar-user-name">Admin</div>
+        <div class="sidebar-user-role">Caspers Transport</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Overview</div>
+      <div class="topbar-actions">
+        <span style="font-size:12px;color:var(--text3)" id="current-date"></span>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Manual booking creation coming in Phase 3','success')">+ New Booking</button>
+      </div>
+    </div>
+
+    <div class="content" id="main-content">
+
+      <!-- ══════════════════════════════════════
+           VIEW: OVERVIEW
+      ══════════════════════════════════════ -->
+      <div class="view active" id="view-overview">
+
+        <!-- Metrics -->
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Today's Jobs</div>
+            <div class="metric-value">3</div>
+            <div class="metric-sub">2 confirmed · 1 in transit</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">This Week</div>
+            <div class="metric-value">11</div>
+            <div class="metric-sub"><span class="metric-up">↑ 2</span> vs last week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Revenue MTD</div>
+            <div class="metric-value">$6,840</div>
+            <div class="metric-sub"><span class="metric-up">↑ 14%</span> vs last month</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Needs Review</div>
+            <div class="metric-value" style="color:var(--amber)">2</div>
+            <div class="metric-sub">Awaiting admin action</div>
+          </div>
+        </div>
+
+        <!-- Needs review queue -->
+        <div class="section-hd">
+          <div class="section-title">Needs Review</div>
+        </div>
+        <div class="review-queue" style="margin-bottom:24px">
+          <div class="review-queue-header">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 1a6 6 0 100 12A6 6 0 007 1zm0 9a.75.75 0 110-1.5A.75.75 0 017 10zm.75-3.25a.75.75 0 01-1.5 0V4.5a.75.75 0 011.5 0v2.25z"/></svg>
+            2 bookings need your attention
+          </div>
+          <div class="review-item" onclick="openJobDetail('BK-0042')">
+            <div class="review-item-name">Dave Kowalski</div>
+            <div class="review-item-info">Norwood SA → Port Lincoln SA · Apr 8</div>
+            <div class="review-item-reason">Follow-up payment pending</div>
+          </div>
+          <div class="review-item" onclick="openJobDetail('BK-0039')">
+            <div class="review-item-name">Marcus Webb</div>
+            <div class="review-item-info">Unley SA → Ceduna SA · Apr 10</div>
+            <div class="review-item-reason">Long distance (780 km) — verify quote</div>
+          </div>
+        </div>
+
+        <!-- Today's jobs -->
+        <div class="section-hd">
+          <div class="section-title">Today's Jobs</div>
+          <button class="btn btn-sm btn-ghost" onclick="showView('bookings',document.querySelector('.nav-item:nth-child(3)'))">View all →</button>
+        </div>
+        <div class="today-grid">
+          <div class="job-card status-in_transit" onclick="openJobDetail('BK-0044')">
+            <div class="job-card-top">
+              <div>
+                <div class="job-name">Terry McLaren</div>
+                <div class="job-time">Departed 7:30 AM</div>
+              </div>
+              <span class="badge badge-in_transit">In transit</span>
+            </div>
+            <div class="job-route">Prospect SA <span class="arrow">→</span> Whyalla SA</div>
+            <div class="job-meta">
+              <span style="font-size:11px;color:var(--text3)">Honda CB500 · Running</span>
+              <span style="font-size:11px;font-weight:600;color:var(--text);margin-left:auto">$420</span>
+            </div>
+          </div>
+          <div class="job-card status-confirmed" onclick="openJobDetail('BK-0045')">
+            <div class="job-card-top">
+              <div>
+                <div class="job-name">Sarah Nguyen</div>
+                <div class="job-time">Pickup 1:00 PM</div>
+              </div>
+              <span class="badge badge-confirmed">Confirmed</span>
+            </div>
+            <div class="job-route">Gawler SA <span class="arrow">→</span> Murray Bridge SA</div>
+            <div class="job-meta">
+              <span style="font-size:11px;color:var(--text3)">Yamaha R3 · Running</span>
+              <span style="font-size:11px;font-weight:600;color:var(--text);margin-left:auto">$310</span>
+            </div>
+          </div>
+          <div class="job-card status-confirmed" onclick="openJobDetail('BK-0046')">
+            <div class="job-card-top">
+              <div>
+                <div class="job-name">Brett Harman</div>
+                <div class="job-time">Pickup 3:30 PM</div>
+              </div>
+              <span class="badge badge-confirmed">Confirmed</span>
+            </div>
+            <div class="job-route">Salisbury SA <span class="arrow">→</span> Mount Gambier SA</div>
+            <div class="job-meta">
+              <span style="font-size:11px;color:var(--text3)">Suzuki GSX · Non-runner</span>
+              <span style="font-size:11px;font-weight:600;color:var(--text);margin-left:auto">$680</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Week strip -->
+        <div style="margin-top:24px">
+          <div class="section-hd">
+            <div class="section-title">This Week</div>
+          </div>
+          <div class="week-strip" id="week-strip"></div>
+        </div>
+
+      </div><!-- /view-overview -->
+
+
+      <!-- ══════════════════════════════════════
+           VIEW: ALL BOOKINGS
+      ══════════════════════════════════════ -->
+      <div class="view" id="view-bookings">
+
+        <div class="filter-bar">
+          <div class="status-tabs">
+            <button class="status-tab active" onclick="filterBookings('all',this)">All</button>
+            <button class="status-tab" onclick="filterBookings('pending_quote',this)">Pending</button>
+            <button class="status-tab" onclick="filterBookings('quote_sent',this)">Quote Sent</button>
+            <button class="status-tab" onclick="filterBookings('confirmed',this)">Confirmed</button>
+            <button class="status-tab" onclick="filterBookings('in_transit',this)">In Transit</button>
+            <button class="status-tab" onclick="filterBookings('completed',this)">Completed</button>
+          </div>
+          <input class="search-input" type="text" placeholder="Search name, address..." id="booking-search" oninput="searchBookings(this.value)">
+        </div>
+
+        <div class="table-wrap">
+          <table id="bookings-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Route</th>
+                <th>Bike(s)</th>
+                <th>Quote</th>
+                <th>Payment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-tbody"></tbody>
+          </table>
+        </div>
+
+      </div><!-- /view-bookings -->
+
+
+      <!-- ══════════════════════════════════════
+           VIEW: JOB DETAIL
+      ══════════════════════════════════════ -->
+      <div class="view" id="view-detail">
+
+        <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
+          <button class="btn btn-sm btn-ghost" onclick="showView('bookings',document.querySelectorAll('.nav-item')[1])" style="display:flex;align-items:center;gap:6px">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 1L3 6l5 5"/></svg>
+            Back
+          </button>
+          <span style="font-size:13px;color:var(--text3)" id="detail-breadcrumb">Booking #BK-0045</span>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <span style="font-size:12px;color:var(--text3)">Status:</span>
+            <select class="status-select" id="detail-status-select" onchange="updateStatus(this.value)">
+              <option value="pending_quote">Pending Quote</option>
+              <option value="quote_sent">Quote Sent</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="in_transit">In Transit</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="detail-layout" id="detail-content">
+          <!-- Populated by JS -->
+        </div>
+
+      </div><!-- /view-detail -->
+
+
+      <!-- ══════════════════════════════════════
+           VIEW: CALENDAR
+      ══════════════════════════════════════ -->
+      <div class="view" id="view-calendar">
+
+        <div class="cal-controls">
+          <button class="btn btn-sm" onclick="calNav(-1)">‹</button>
+          <button class="btn btn-sm" onclick="calNav(1)">›</button>
+          <div class="cal-month-label" id="cal-month-label"></div>
+          <div class="cal-view-tabs" style="margin-left:auto">
+            <button class="cal-view-tab active">Month</button>
+            <button class="cal-view-tab">Week</button>
+          </div>
+        </div>
+
+        <div class="cal-grid-header">
+          <div>Sun</div><div>Mon</div><div>Tue</div>
+          <div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+
+        <!-- Legend -->
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
+            <span style="width:10px;height:10px;border-radius:2px;background:rgba(46,158,91,0.25);border-left:2px solid var(--green);display:inline-block"></span>Confirmed
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
+            <span style="width:10px;height:10px;border-radius:2px;background:rgba(42,127,212,0.25);border-left:2px solid var(--blue);display:inline-block"></span>In transit
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
+            <span style="width:10px;height:10px;border-radius:2px;background:rgba(212,136,10,0.25);border-left:2px solid var(--amber);display:inline-block"></span>Pending
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
+            <span style="width:10px;height:10px;border-radius:2px;background:var(--bg3);border-left:2px solid var(--text3);display:inline-block"></span>Completed
+          </div>
+        </div>
+
+      </div><!-- /view-calendar -->
+
+
+      <!-- ══════════════════════════════════════
+           VIEW: RATE CARD
+      ══════════════════════════════════════ -->
+      <div class="view" id="view-ratecards">
+
+        <div style="max-width:640px">
+
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="detail-card-title">Base Rates</div>
+              <span style="font-size:11px;color:var(--text3)">Last updated: Today</span>
+            </div>
+            <div class="detail-card-body">
+              <div class="info-grid" style="gap:16px">
+                <div class="field-rc">
+                  <div class="info-label">Base call-out fee</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-base" value="120.00" step="5">
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Per km — loaded</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-km-loaded" value="2.20" step="0.05">
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Per km — return run</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-km-return" value="1.10" step="0.05">
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Multi-bike discount</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <input type="number" class="rc-input" id="rc-multi" value="20" step="5">
+                    <span style="font-size:13px;color:var(--text2)">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="detail-card-title">Condition Surcharges</div>
+            </div>
+            <div class="detail-card-body">
+              <div class="info-grid" style="gap:16px">
+                <div class="field-rc">
+                  <div class="info-label">Non-runner</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-non-runner" value="50" step="10">
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Broken / Seized</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-seized" value="80" step="10">
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Stripped / In pieces</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-stripped" value="100" step="10">
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Custom / Part-built</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-custom" value="50" step="10">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="detail-card-title">Overnight &amp; Timing</div>
+            </div>
+            <div class="detail-card-body">
+              <div class="info-grid" style="gap:16px">
+                <div class="field-rc">
+                  <div class="info-label">Overnight allowance</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:13px;color:var(--text2)">A$</span>
+                    <input type="number" class="rc-input" id="rc-overnight" value="180" step="10">
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Buffer between jobs</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <input type="number" class="rc-input" id="rc-buffer" value="30" step="5">
+                    <span style="font-size:13px;color:var(--text2)">min</span>
+                  </div>
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Deposit percentage</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <input type="number" class="rc-input" id="rc-deposit" value="20" step="5">
+                    <span style="font-size:13px;color:var(--text2)">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="detail-card-title">Fuel Levy</div>
+            </div>
+            <div class="detail-card-body">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div>
+                  <div class="info-label">Fuel levy active</div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:2px">Applies % on top of total quote</div>
+                </div>
+                <label class="toggle" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                  <input type="checkbox" id="rc-fuel-active" style="display:none" onchange="toggleFuelLevy(this)">
+                  <div id="toggle-track" style="width:36px;height:20px;background:var(--bg4);border-radius:20px;position:relative;transition:background 0.2s;cursor:pointer" onclick="document.getElementById('rc-fuel-active').click()">
+                    <div id="toggle-thumb" style="width:16px;height:16px;background:var(--text3);border-radius:50%;position:absolute;top:2px;left:2px;transition:all 0.2s"></div>
+                  </div>
+                  <span style="font-size:13px;color:var(--text2)" id="fuel-toggle-label">Off</span>
+                </label>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;opacity:0.4" id="fuel-levy-field">
+                <div class="info-label" style="margin-bottom:0">Rate:</div>
+                <input type="number" class="rc-input" id="rc-fuel-pct" value="5" step="0.5" style="width:70px">
+                <span style="font-size:13px;color:var(--text2)">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:12px;font-size:13px;color:var(--text2);line-height:1.6;">
+          <strong style="color:var(--text);font-weight:600;">Service area:</strong> Metro and country South Australia only. Home base: Roseworthy SA 5371.<br>
+          Jobs over 350 km from base are auto-flagged for admin review before quote is sent.
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+            <button class="btn" onclick="showToast('Changes discarded','')">Discard</button>
+            <button class="btn btn-primary" onclick="saveRateCard()">Save Rate Card</button>
+          </div>
+
+        </div>
+      </div><!-- /view-ratecards -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="toast" id="toast"></div>
+
+<style>
+.rc-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:6px 10px;font-family:var(--font-body);font-size:14px;font-weight:600;
+  color:var(--text);outline:none;width:100px;
+  -moz-appearance:textfield;
+}
+.rc-input::-webkit-outer-spin-button,.rc-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.rc-input:focus{border-color:var(--border2)}
+</style>
+
+<script>
+// ============================================================
+// SUPABASE LIVE DATA
+// ============================================================
+let BOOKINGS = [];
+let _supabase = null;
+
+async function initSupabase() {
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  const url  = document.documentElement.dataset.supabaseUrl;
+  const anon = document.documentElement.dataset.supabaseAnon;
+  if (!url || !anon) {
+    console.warn('Supabase env vars missing — check Vercel environment variables');
+    return null;
+  }
+  return createClient(url, anon);
+}
+
+function shapeBooking(raw) {
+  // Normalise Supabase row shape to match the dashboard's expected format
+  const c     = raw.customers || {};
+  const bikes = raw.bikes     || [];
+  const quotes= raw.quotes    || [];
+  const q     = quotes.sort((a,b) => b.version - a.version)[0] || {};
+  return {
+    id:          raw.id,
+    name:        c.name        || '—',
+    email:       c.email       || '',
+    phone:       c.phone       || '',
+    date:        raw.pickup_date,
+    time:        raw.pickup_time || '',
+    pickup:      raw.pickup_address,
+    dropoff:     raw.dropoff_address,
+    bikes:       bikes.map(b => ({
+      type:      b.bike_type,
+      condition: b.condition,
+      make:      b.make  || '',
+      model:     b.model || '',
+      year:      b.year  || '',
+    })),
+    quote:       parseFloat(q.total_aud || 0),
+    payment:     raw.payment_method || 'follow_up',
+    deposit:     raw.deposit_paid   || false,
+    status:      raw.status,
+    km:          raw.distance_km    || 0,
+    notes:       raw.notes          || '',
+    needsReview: raw.needs_review   || false,
+    reviewReason:raw.review_reason  || '',
+  };
+}
+
+async function loadBookings() {
+  if (!_supabase) return;
+  showLoadingState(true);
+  const { data, error } = await _supabase
+    .from('bookings')
+    .select(\`
+      id, status, pickup_date, pickup_time,
+      pickup_address, dropoff_address,
+      distance_km, return_km, deposit_paid,
+      payment_method, notes, needs_review, review_reason,
+      customers ( name, email, phone ),
+      bikes ( bike_type, condition, make, model, year ),
+      quotes ( total_aud, version, base_rate, km_loaded,
+               condition_surcharge, multi_bike_discount,
+               fuel_levy_amount, km_rate_loaded )
+    \`)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Bookings load error:', error);
+    showToast('Failed to load bookings — check console', 'error');
+    showLoadingState(false);
+    return;
+  }
+  BOOKINGS = (data || []).map(shapeBooking);
+  showLoadingState(false);
+  renderBookingsTable();
+  renderWeekStrip();
+  updateMetrics();
+}
+
+async function updateStatus(val) {
+  if (!currentDetailId || !_supabase) return;
+  const { error } = await _supabase
+    .from('bookings')
+    .update({ status: val, updated_at: new Date().toISOString() })
+    .eq('id', currentDetailId);
+  if (error) { showToast('Status update failed', 'error'); return; }
+  const b = BOOKINGS.find(x => x.id === currentDetailId);
+  if (b) b.status = val;
+  showToast('Status updated to ' + (STATUS_LABELS[val]?.label || val), 'success');
+  renderBookingsTable();
+  updateMetrics();
+}
+
+async function saveRateCard() {
+  if (!_supabase) { showToast('Rate card saved (offline mode)', 'success'); return; }
+  const payload = {
+    base_callout_aud:        parseFloat(document.getElementById('rc-base').value),
+    km_rate_loaded:          parseFloat(document.getElementById('rc-km-loaded').value),
+    km_rate_return:          parseFloat(document.getElementById('rc-km-return').value),
+    multi_bike_discount_pct: parseFloat(document.getElementById('rc-multi').value),
+    surcharge_non_runner:    parseFloat(document.getElementById('rc-non-runner').value),
+    surcharge_seized:        parseFloat(document.getElementById('rc-seized').value),
+    surcharge_stripped:      parseFloat(document.getElementById('rc-stripped').value),
+    surcharge_custom_build:  parseFloat(document.getElementById('rc-custom').value),
+    overnight_allowance:     parseFloat(document.getElementById('rc-overnight').value),
+    buffer_minutes:          parseInt(document.getElementById('rc-buffer').value),
+    stripe_deposit_pct:      parseFloat(document.getElementById('rc-deposit').value),
+    fuel_levy_active:        document.getElementById('rc-fuel-active').checked,
+    fuel_levy_pct:           parseFloat(document.getElementById('rc-fuel-pct').value),
+    updated_at:              new Date().toISOString(),
+  };
+  const { error } = await _supabase.from('rate_card').update(payload).not('id', 'is', null);
+  if (error) { showToast('Save failed: ' + error.message, 'error'); return; }
+  showToast('Rate card saved — applies to all future quotes', 'success');
+}
+
+async function loadRateCard() {
+  if (!_supabase) return;
+  const { data } = await _supabase.from('rate_card').select('*').limit(1).single();
+  if (!data) return;
+  document.getElementById('rc-base').value        = data.base_callout_aud;
+  document.getElementById('rc-km-loaded').value   = data.km_rate_loaded;
+  document.getElementById('rc-km-return').value   = data.km_rate_return;
+  document.getElementById('rc-multi').value        = data.multi_bike_discount_pct;
+  document.getElementById('rc-non-runner').value  = data.surcharge_non_runner;
+  document.getElementById('rc-seized').value      = data.surcharge_seized;
+  document.getElementById('rc-stripped').value    = data.surcharge_stripped;
+  document.getElementById('rc-custom').value      = data.surcharge_custom_build;
+  document.getElementById('rc-overnight').value   = data.overnight_allowance;
+  document.getElementById('rc-buffer').value      = data.buffer_minutes;
+  document.getElementById('rc-deposit').value     = data.stripe_deposit_pct;
+  if (data.fuel_levy_active) {
+    document.getElementById('rc-fuel-active').checked = true;
+    toggleFuelLevy({checked: true});
+  }
+  document.getElementById('rc-fuel-pct').value    = data.fuel_levy_pct;
+}
+
+function showLoadingState(loading) {
+  const tbody = document.getElementById('bookings-tbody');
+  if (loading && tbody) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">Loading bookings...</td></tr>';
+  }
+}
+
+function updateMetrics() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayJobs   = BOOKINGS.filter(b => b.date === today).length;
+  const weekJobs    = BOOKINGS.filter(b => {
+    const d = new Date(b.date), now = new Date();
+    const start = new Date(now); start.setDate(now.getDate() - now.getDay());
+    return d >= start && d <= now;
+  }).length;
+  const mtdRevenue  = BOOKINGS.filter(b => {
+    const d = new Date(b.date), now = new Date();
+    return b.status === 'completed' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).reduce((a,b) => a + b.quote, 0);
+  const needsReview = BOOKINGS.filter(b => b.needsReview && b.status === 'quote_sent').length;
+
+  // Update metric cards in overview
+  const metrics = document.querySelectorAll('.metric-value');
+  if (metrics[0]) metrics[0].textContent = todayJobs;
+  if (metrics[1]) metrics[1].textContent = weekJobs;
+  if (metrics[2]) metrics[2].textContent = '$' + mtdRevenue.toLocaleString();
+  if (metrics[3]) { metrics[3].textContent = needsReview; metrics[3].style.color = needsReview > 0 ? 'var(--amber)' : 'var(--text)'; }
+
+  // Pending badge
+  const pending = BOOKINGS.filter(b => b.status === 'pending_quote' || b.status === 'quote_sent').length;
+  const nb = document.getElementById('nb-pending');
+  if (nb) nb.textContent = pending;
+}
+
+// Subscribe to realtime updates so dashboard refreshes when new bookings arrive
+function subscribeRealtime() {
+  if (!_supabase) return;
+  _supabase
+    .channel('bookings-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+      loadBookings();
+    })
+    .subscribe();
+}
+
+let currentFilter   = 'all';
+let currentSearch   = '';
+let currentDetailId = null;
+let calYear, calMonth;
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showView(viewId, navEl){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+viewId).classList.add('active');
+  if(navEl) navEl.classList.add('active');
+
+  const titles={overview:'Overview',bookings:'All Bookings',detail:'Job Detail',calendar:'Calendar',ratecards:'Rate Card'};
+  document.getElementById('page-title').textContent=titles[viewId]||viewId;
+
+  if(viewId==='bookings')   renderBookingsTable();
+  if(viewId==='calendar')   renderCalendar();
+  if(viewId==='overview')   renderWeekStrip();
+}
+
+function openJobDetail(id){
+  currentDetailId=id;
+  const navBtns=document.querySelectorAll('.nav-item');
+  navBtns.forEach(n=>n.classList.remove('active'));
+  showView('detail',null);
+  document.getElementById('page-title').textContent='Job Detail';
+  renderDetail(id);
+}
+
+// ============================================================
+// BOOKINGS TABLE
+// ============================================================
+const STATUS_LABELS={
+  pending_quote:{label:'Pending',cls:'badge-pending',dot:'#D4880A'},
+  quote_sent:{label:'Quote Sent',cls:'badge-quote_sent',dot:'#7B5EA7'},
+  confirmed:{label:'Confirmed',cls:'badge-confirmed',dot:'#2E9E5B'},
+  in_transit:{label:'In Transit',cls:'badge-in_transit',dot:'#2A7FD4'},
+  completed:{label:'Completed',cls:'badge-completed',dot:'#5C5C58'},
+  cancelled:{label:'Cancelled',cls:'badge-cancelled',dot:'#4FC1DB'},
+};
+
+function filterBookings(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.status-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderBookingsTable();
+}
+
+function searchBookings(q){
+  currentSearch=q.toLowerCase();
+  renderBookingsTable();
+}
+
+function renderBookingsTable(){
+  let data=[...BOOKINGS];
+  if(currentFilter!=='all') data=data.filter(b=>b.status===currentFilter);
+  if(currentSearch) data=data.filter(b=>
+    b.name.toLowerCase().includes(currentSearch)||
+    b.pickup.toLowerCase().includes(currentSearch)||
+    b.dropoff.toLowerCase().includes(currentSearch)||
+    b.id.toLowerCase().includes(currentSearch)
+  );
+
+  // Count pending for badge
+  const pending=BOOKINGS.filter(b=>b.status==='pending_quote'||b.status==='quote_sent').length;
+  document.getElementById('nb-pending').textContent=pending;
+
+  const tbody=document.getElementById('bookings-tbody');
+  if(data.length===0){
+    tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3);">No bookings match this filter.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML=data.map(b=>{
+    const s=STATUS_LABELS[b.status]||{label:b.status,cls:'badge-pending',dot:'#888'};
+    const bikeStr=b.bikes.map(bk=>`${bk.make||''} ${bk.model||''}`.trim()||bk.type).join(', ');
+    const dateStr=formatDate(b.date);
+    const payStr=b.payment==='stripe_deposit'?'Stripe':'Follow-up';
+    return `<tr onclick="openJobDetail('${b.id}')">
+      <td class="bold">${b.name}<div class="sub">${b.id}</div></td>
+      <td class="bold">${dateStr}<div class="sub">${b.time||'TBC'}</div></td>
+      <td>${b.pickup}<div class="sub">→ ${b.dropoff}</div></td>
+      <td>${bikeStr}</td>
+      <td class="bold">A$${b.quote.toFixed(2)}</td>
+      <td><span style="font-size:12px;color:${b.deposit?'var(--green)':'var(--amber)'};">${payStr}${b.deposit?' ✓':' —'}</span></td>
+      <td><span class="badge ${s.cls}">${s.label}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// JOB DETAIL
+// ============================================================
+function renderDetail(id){
+  const b=BOOKINGS.find(x=>x.id===id);
+  if(!b) return;
+
+  document.getElementById('detail-breadcrumb').textContent=`Booking ${b.id} — ${b.name}`;
+  document.getElementById('detail-status-select').value=b.status;
+
+  const bikeRows=b.bikes.map((bk,i)=>{
+    const condLabel={running_rideable:'Running + Rideable',non_runner:'Non-runner',broken_seized:'Broken / Seized',custom_part_built:'Custom / Part-built',stripped_pieces:'Stripped / In Pieces'}[bk.condition]||bk.condition;
+    const condCls={running_rideable:'badge-confirmed',non_runner:'badge-pending',broken_seized:'badge-cancelled',custom_part_built:'badge-quote_sent',stripped_pieces:'badge-cancelled'}[bk.condition]||'badge-pending';
+    return `<div class="bike-detail-item">
+      <div class="bike-detail-top">
+        <div class="bike-detail-name">${bk.make||''} ${bk.model||''} ${bk.year||''}`.trim()||`Bike ${i+1}`+`</div>
+        <span class="badge ${condCls}">${condLabel}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text3)">${bk.type.replace(/_/g,' ')}</div>
+    </div>`;
+  }).join('');
+
+  // Rough quote breakdown
+  const base=120, kmCost=(b.km*2*2.2).toFixed(2), condS=b.bikes.some(bk=>bk.condition==='non_runner')?50:0;
+
+  const statusComms=[
+    {type:'Quote email sent',meta:`To: ${b.email}`,status:'sent',time:'2 mins after submission'},
+    {type:'Admin notification',meta:'To: admin@casperstransport.com.au',status:'sent',time:'2 mins after submission'},
+  ];
+  if(b.deposit){
+    statusComms.push({type:'Confirmation email sent',meta:`To: ${b.email}`,status:'sent',time:'On deposit payment'});
+  }
+
+  document.getElementById('detail-content').innerHTML=`
+    <div class="detail-main">
+
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <div class="detail-card-title">Customer</div>
+          <span class="badge ${STATUS_LABELS[b.status]?.cls||'badge-pending'}">${STATUS_LABELS[b.status]?.label||b.status}</span>
+        </div>
+        <div class="detail-card-body">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Name</div><div class="info-value">${b.name}</div></div>
+            <div class="info-item"><div class="info-label">Phone</div><div class="info-value"><a href="tel:${b.phone}">${b.phone}</a></div></div>
+            <div class="info-item"><div class="info-label">Email</div><div class="info-value"><a href="mailto:${b.email}">${b.email}</a></div></div>
+            <div class="info-item"><div class="info-label">Booking ID</div><div class="info-value">${b.id}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <div class="detail-card-title">Route</div>
+          <span style="font-size:12px;color:var(--text3)">${b.km} km loaded</span>
+        </div>
+        <div class="detail-card-body" style="padding:12px 16px">
+          <div class="route-display">
+            <div class="route-point">
+              <div class="label">Pickup</div>
+              <div class="addr">${b.pickup}</div>
+            </div>
+            <div class="route-arrow">→</div>
+            <div class="route-point">
+              <div class="label">Dropoff</div>
+              <div class="addr">${b.dropoff}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <a href="https://www.google.com/maps/dir/Roseworthy+SA/${encodeURIComponent(b.pickup)}/${encodeURIComponent(b.dropoff)}" target="_blank" style="font-size:12px;color:var(--red);text-decoration:none;display:flex;align-items:center;gap:4px">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2"/><path d="M6 1C3.8 1 2 2.8 2 5c0 3 4 7 4 7s4-4 4-7c0-2.2-1.8-4-4-4z"/></svg>
+              Open in Google Maps
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <div class="detail-card-header"><div class="detail-card-title">Bike Details</div></div>
+        <div class="detail-card-body">${bikeRows}</div>
+      </div>
+
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <div class="detail-card-title">Pickup Details</div>
+        </div>
+        <div class="detail-card-body">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Date</div><div class="info-value">${formatDate(b.date)}</div></div>
+            <div class="info-item"><div class="info-label">Time</div><div class="info-value">${b.time||'TBC'}</div></div>
+          </div>
+          ${b.notes?`<div style="margin-top:12px;background:var(--bg3);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text);font-weight:600">Notes:</strong> ${b.notes}</div>`:''}
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <div class="detail-card-header"><div class="detail-card-title">Comms Log</div></div>
+        <div class="detail-card-body" style="padding:8px 16px">
+          ${statusComms.map(c=>`
+            <div class="comms-item">
+              <div class="comms-dot ${c.status}"></div>
+              <div>
+                <div class="comms-type">${c.type}</div>
+                <div class="comms-meta">${c.meta} · ${c.time}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="detail-sidebar">
+
+      <div class="detail-card">
+        <div class="detail-card-header"><div class="detail-card-title">Quote</div></div>
+        <div class="detail-card-body">
+          <div class="quote-lines">
+            <div class="q-line"><span class="lbl">Base call-out</span><span class="amt">A$120.00</span></div>
+            <div class="q-line"><span class="lbl">Transport (${b.km} km)</span><span class="amt">A$${kmCost}</span></div>
+            ${condS?`<div class="q-line"><span class="lbl">Condition surcharge</span><span class="amt">A$${condS}.00</span></div>`:''}
+            <div class="q-line total"><span class="lbl">Total</span><span class="amt">A$${b.quote}.00</span></div>
+          </div>
+          <div style="margin-top:12px;padding:8px 10px;background:var(--bg3);border-radius:var(--radius);font-size:12px;color:var(--text2)">
+            Payment: <strong style="color:${b.deposit?'var(--green)':'var(--amber)'};">${b.payment==='stripe_deposit'?'Stripe deposit':'Follow-up'} ${b.deposit?'✓ Paid':'— Not paid'}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <div class="detail-card-header"><div class="detail-card-title">Actions</div></div>
+        <div class="detail-card-body" style="padding:10px 16px">
+          <div class="action-btns">
+            ${b.status==='quote_sent'?`<button class="action-btn primary" onclick="showToast('Booking confirmed — calendar blocks created','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 7 5.5 10.5 12 3"/></svg>Confirm Booking</button>`:''}
+            ${b.status==='confirmed'?`<button class="action-btn primary" onclick="showToast('Job marked as in transit','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h10M8 3l4 4-4 4"/></svg>Mark In Transit</button>`:''}
+            ${b.status==='in_transit'?`<button class="action-btn primary" onclick="showToast('Job marked as complete — invoice sent','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 7 5.5 10.5 12 3"/></svg>Mark Complete</button>`:''}
+            <button class="action-btn" onclick="showToast('Quote email resent','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><polyline points="1 3 7 8.5 13 3"/></svg>Resend Quote</button>
+            <button class="action-btn" onclick="showToast('Invoice sent to ${b.email}','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="8" x2="10" y2="8"/></svg>Send Invoice</button>
+            <a href="https://www.google.com/maps/dir/Roseworthy+SA/${encodeURIComponent(b.pickup)}/${encodeURIComponent(b.dropoff)}" target="_blank" class="action-btn" style="text-decoration:none;color:var(--text)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="6" r="2.5"/><path d="M7 1C4.2 1 2 3.2 2 6c0 4 5 8 5 8s5-4 5-8c0-2.8-2.2-5-5-5z"/></svg>Open Route in Maps</button>
+            <button class="action-btn" style="color:var(--red);border-color:var(--red-border)" onclick="showToast('Booking cancelled','error')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>Cancel Booking</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+function updateStatus(val){
+  if(!currentDetailId) return;
+  const b=BOOKINGS.find(x=>x.id===currentDetailId);
+  if(b){ b.status=val; showToast(`Status updated to ${STATUS_LABELS[val]?.label||val}`,'success'); }
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+function initCalendar(){
+  const now=new Date();
+  calYear=now.getFullYear();
+  calMonth=now.getMonth();
+}
+
+function calNav(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent=`${MONTHS[calMonth]} ${calYear}`;
+
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev=new Date(calYear,calMonth,0).getDate();
+  const today=new Date();
+
+  // Map bookings to dates
+  const bookingMap={};
+  BOOKINGS.forEach(b=>{
+    const d=b.date;
+    if(!bookingMap[d]) bookingMap[d]=[];
+    bookingMap[d].push(b);
+  });
+
+  let cells='';
+  let totalCells=Math.ceil((firstDay+daysInMonth)/7)*7;
+  for(let i=0;i<totalCells;i++){
+    let day,isOther=false,isToday=false;
+    if(i<firstDay){
+      day=daysInPrev-firstDay+i+1;
+      isOther=true;
+    } else if(i>=firstDay+daysInMonth){
+      day=i-firstDay-daysInMonth+1;
+      isOther=true;
+    } else {
+      day=i-firstDay+1;
+      const d=new Date(calYear,calMonth,day);
+      isToday=(d.toDateString()===today.toDateString());
+    }
+
+    const dateKey=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayBookings=(!isOther&&bookingMap[dateKey])||[];
+
+    const eventHtml=dayBookings.slice(0,3).map(b=>{
+      const cls=b.status==='in_transit'?'in_transit':b.status==='confirmed'?'confirmed':b.status==='completed'?'completed':'pending';
+      return `<div class="cal-event ${cls}" onclick="openJobDetail('${b.id}')" title="${b.name}">${b.time||''} ${b.name.split(' ')[0]}</div>`;
+    }).join('');
+    const more=dayBookings.length>3?`<div style="font-size:10px;color:var(--text3);padding:0 2px">+${dayBookings.length-3} more</div>`:'';
+
+    cells+=`<div class="cal-cell${isOther?' other-month':''}${isToday?' today':''}">
+      <div class="cal-cell-num">${day}</div>
+      ${eventHtml}${more}
+    </div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML=cells;
+}
+
+// ============================================================
+// WEEK STRIP (OVERVIEW)
+// ============================================================
+function renderWeekStrip(){
+  const today=new Date();
+  const day=today.getDay();
+  const mon=new Date(today); mon.setDate(today.getDate()-day);
+
+  const bookingMap={};
+  BOOKINGS.forEach(b=>{
+    if(!bookingMap[b.date]) bookingMap[b.date]=[];
+    bookingMap[b.date].push(b);
+  });
+
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html='<div class="week-days">';
+  for(let i=0;i<7;i++){
+    const d=new Date(mon); d.setDate(mon.getDate()+i);
+    const isToday=d.toDateString()===today.toDateString();
+    const dateKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const dayBks=bookingMap[dateKey]||[];
+    const events=dayBks.slice(0,3).map(b=>{
+      const cls=b.status==='in_transit'?'in_transit':b.status==='confirmed'?'confirmed':b.status==='completed'?'completed':'pending';
+      return `<div class="week-event ${cls}" onclick="openJobDetail('${b.id}')">${b.name.split(' ')[0]}</div>`;
+    }).join('');
+    html+=`<div class="week-day${isToday?' today':''}">
+      <div class="week-day-label">${DAYS[i]}</div>
+      <div class="week-day-num">${d.getDate()}</div>
+      ${events}
+    </div>`;
+  }
+  html+='</div>';
+  document.getElementById('week-strip').innerHTML=html;
+}
+
+// ============================================================
+// RATE CARD
+// ============================================================
+function toggleFuelLevy(el){
+  const active=el.checked;
+  document.getElementById('toggle-track').style.background=active?'var(--green)':'var(--bg4)';
+  document.getElementById('toggle-thumb').style.left=active?'18px':'2px';
+  document.getElementById('toggle-thumb').style.background=active?'white':'var(--text3)';
+  document.getElementById('fuel-toggle-label').textContent=active?'Active':'Off';
+  document.getElementById('fuel-levy-field').style.opacity=active?'1':'0.4';
+}
+
+function saveRateCard(){
+  showToast('Rate card saved — new quotes will use updated rates','success');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function formatDate(d){
+  if(!d) return '—';
+  const dt=new Date(d+'T12:00:00');
+  return dt.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.getElementById('current-date').textContent=
+  new Date().toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+
+initCalendar();
+
+// Boot: init Supabase → load live bookings + rate card → subscribe realtime
+(async () => {
+  _supabase = await initSupabase();
+  await loadBookings();
+  await loadRateCard();
+  subscribeRealtime();
+  renderWeekStrip();
+  renderCalendar();
+})();
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
-export default function Home() {
+export default function AdminPage() {
   return (
     <iframe
-      src="/website.html"
+      src="/admin.html"
       style={{ width: '100%', height: '100vh', border: 'none' }}
     />
   );

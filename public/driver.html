@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Caspers — Driver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F0F0E;--bg2:#181817;--bg3:#222220;--bg4:#2C2C29;
+  --bd:#333330;--bd2:#444440;
+  --text:#F0EFE8;--text2:#9E9D95;--text3:#5C5C58;
+  --red:#4FC1DB;--red2:#409EB3;--redbg:rgba(79,193,219,0.12);--redbdr:rgba(79,193,219,0.3);
+  --green:#2E9E5B;--greenbg:rgba(46,158,91,0.15);
+  --amber:#D4880A;--amberbg:rgba(212,136,10,0.15);
+  --blue:#2A7FD4;--bluebg:rgba(42,127,212,0.15);
+  --r:8px;--font-d:'Barlow Condensed',sans-serif;--font-b:'Barlow',sans-serif;
+}
+html,body{height:100%;background:var(--bg);overflow:hidden}
+body{font-family:var(--font-b);font-size:15px;color:var(--text);max-width:480px;margin:0 auto}
+
+.topbar{
+  position:sticky;top:0;z-index:20;background:var(--bg2);border-bottom:1px solid var(--bd);
+  padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;
+}
+.topbar-logo{font-family:var(--font-d);font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+.topbar-logo span{color:var(--red)}
+.driver-chip{
+  display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--bd);
+  border-radius:20px;padding:5px 10px 5px 6px;font-size:12px;font-weight:600;color:var(--text2);
+}
+.driver-avatar{
+  width:22px;height:22px;border-radius:50%;background:var(--redbg);border:1px solid var(--redbdr);
+  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--red);
+}
+.scroll-area{height:calc(100vh - 52px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:32px}
+.date-strip{padding:16px 18px 0}
+.date-label{font-family:var(--font-d);font-size:28px;font-weight:800;text-transform:uppercase;letter-spacing:0.02em;line-height:1}
+.date-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.day-summary{display:flex;gap:8px;padding:14px 18px 16px;overflow-x:auto;scrollbar-width:none}
+.day-summary::-webkit-scrollbar{display:none}
+.summary-chip{flex-shrink:0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px;min-width:88px}
+.summary-chip-val{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.summary-chip-lbl{font-size:11px;color:var(--text3);margin-top:2px;font-weight:600}
+.section-hd{padding:4px 18px 10px}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--text3)}
+.job-list{padding:0 12px;display:flex;flex-direction:column;gap:10px}
+.job-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;transition:border-color 0.15s}
+.job-card.active-job{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+.job-card.done-job{opacity:0.55}
+.job-card-header{display:flex;align-items:center;padding:14px 14px 0;gap:12px}
+.job-num{
+  width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1px solid var(--bd2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--text2);flex-shrink:0;
+}
+.job-card.active-job .job-num{background:var(--red);border-color:var(--red);color:white}
+.job-card.done-job .job-num{background:var(--green);border-color:var(--green);color:white}
+.job-card-meta{flex:1;min-width:0}
+.job-name{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-time{font-size:12px;color:var(--text3);margin-top:1px}
+.job-status-badge{flex-shrink:0;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.status-confirmed{background:var(--greenbg);color:var(--green)}
+.status-in_transit{background:var(--bluebg);color:var(--blue)}
+.status-completed{background:var(--bg4);color:var(--text3)}
+.job-route{padding:12px 14px;display:flex;align-items:stretch}
+.route-line{display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0;padding-top:3px}
+.route-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--red);background:var(--bg2);flex-shrink:0}
+.route-dot.end{border-color:var(--green);background:var(--green)}
+.route-vline{flex:1;width:2px;background:var(--bd2);margin:3px 0}
+.route-addrs{flex:1;min-width:0;padding-left:10px}
+.route-point{margin-bottom:12px}
+.route-point:last-child{margin-bottom:0}
+.route-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:2px}
+.route-addr{font-size:13px;color:var(--text);font-weight:500;line-height:1.3}
+.bike-info{padding:0 14px 2px;display:flex;gap:6px;flex-wrap:wrap}
+.bike-pill{
+  display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--bd);
+  border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);font-weight:500;
+}
+.bike-pill .cond{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:2px}
+.cond-green{background:var(--greenbg);color:var(--green)}
+.cond-amber{background:var(--amberbg);color:var(--amber)}
+.cond-red{background:var(--redbg);color:var(--red)}
+.job-notes{
+  margin:8px 14px 0;padding:10px 12px;
+  background:rgba(212,136,10,0.08);border-left:2px solid var(--amber);
+  border-radius:0 6px 6px 0;font-size:12px;color:var(--text2);line-height:1.5;
+}
+.job-notes strong{color:var(--amber);font-weight:600}
+
+/* ── SIG PILLS ── */
+.sig-strip{margin:10px 14px 0;display:flex;gap:6px}
+.sig-pill{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700}
+.sig-pill.done{background:var(--greenbg);color:var(--green)}
+.sig-pill.pending{background:var(--bg3);border:1px solid var(--bd);color:var(--text3)}
+.sig-pill svg{width:12px;height:12px;flex-shrink:0}
+
+/* ── ACTIONS ── */
+.job-actions{padding:12px 14px 14px;display:flex;gap:8px;flex-wrap:wrap}
+.action-btn{
+  flex:1;min-width:0;padding:11px 8px;border-radius:8px;
+  font-family:var(--font-b);font-size:13px;font-weight:700;
+  cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:opacity 0.15s,transform 0.1s;text-decoration:none;-webkit-tap-highlight-color:transparent;
+}
+.action-btn:active{opacity:0.8;transform:scale(0.97)}
+.btn-nav{background:var(--red);color:white}
+.btn-call{background:var(--bg3);border:1px solid var(--bd2);color:var(--text)}
+.btn-complete{background:var(--green);color:white}
+.btn-transit{background:var(--blue);color:white}
+.btn-sig{background:var(--bg3);border:1px solid var(--bd2);color:var(--text)}
+.btn-sig.has-sig{border-color:var(--green);color:var(--green)}
+.btn-done-indicator{
+  flex:1;padding:10px 8px;border-radius:8px;background:var(--bg3);border:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:13px;font-weight:600;color:var(--text3);
+}
+.action-btn svg,.btn-done-indicator svg{width:15px;height:15px;flex-shrink:0}
+
+.completed-divider{display:flex;align-items:center;gap:10px;padding:20px 18px 12px}
+.completed-divider-line{flex:1;height:1px;background:var(--bd)}
+.completed-divider-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);white-space:nowrap}
+
+.km-footer{margin:24px 12px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.km-footer-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:12px}
+.km-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--bd);color:var(--text2)}
+.km-row:last-child{border-bottom:none}
+.km-row.total{font-weight:700;color:var(--text);font-size:14px;padding-top:8px;margin-top:4px}
+.km-row span:last-child{color:var(--text);font-weight:600}
+
+/* ════════════════════════════════
+   SIGNATURE MODAL
+════════════════════════════════ */
+.sig-modal{
+  position:fixed;inset:0;z-index:100;background:var(--bg);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
+}
+.sig-modal.open{transform:translateY(0)}
+.sig-modal-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--bd);flex-shrink:0;
+}
+.sig-modal-title{font-family:var(--font-d);font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+.sig-close-btn{
+  width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1px solid var(--bd2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.sig-close-btn svg{width:14px;height:14px;stroke:var(--text2);stroke-width:2;fill:none}
+.sig-job-summary{padding:14px 18px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.sig-job-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:2px}
+.sig-job-route{font-size:13px;color:var(--text2);line-height:1.5}
+.sig-job-bike{font-size:12px;color:var(--text3);margin-top:3px}
+.sig-type-selector{display:flex;padding:14px 18px 10px;flex-shrink:0;gap:0}
+.sig-type-btn{
+  flex:1;padding:10px;border:1px solid var(--bd2);background:var(--bg3);color:var(--text2);
+  font-family:var(--font-b);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;
+}
+.sig-type-btn:first-child{border-radius:8px 0 0 8px}
+.sig-type-btn:last-child{border-radius:0 8px 8px 0;border-left:none}
+.sig-type-btn.active{background:var(--red);border-color:var(--red);color:white}
+.sig-instruction{padding:0 18px 10px;font-size:13px;color:var(--text3);flex-shrink:0}
+
+/* Canvas */
+.sig-canvas-wrap{
+  flex:1;position:relative;margin:0 18px;min-height:0;border-radius:10px;overflow:hidden;
+}
+.sig-canvas{
+  width:100%;height:100%;display:block;
+  background:white;touch-action:none;cursor:crosshair;
+}
+
+/* Placeholder */
+.sig-placeholder{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;pointer-events:none;
+  background:white;
+}
+.sig-placeholder svg{width:36px;height:36px;stroke:#CCCBC8;fill:none;stroke-width:1.5}
+.sig-placeholder p{font-size:13px;color:#CCCBC8;text-align:center;line-height:1.5}
+
+/* Saving overlay */
+.sig-saving{
+  display:none;position:absolute;inset:0;background:rgba(255,255,255,0.85);
+  border-radius:10px;align-items:center;justify-content:center;
+  flex-direction:column;gap:10px;font-size:14px;color:#3D3C39;font-weight:600;
+}
+.sig-saving.show{display:flex}
+.spinner{width:22px;height:22px;border:2.5px solid #E8E7E5;border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Bottom bar */
+.sig-bottom{
+  padding:14px 18px;display:flex;gap:8px;flex-shrink:0;
+  border-top:1px solid var(--bd);
+  padding-bottom:max(14px,env(safe-area-inset-bottom));
+}
+.sig-btn{
+  flex:1;padding:13px;border-radius:8px;
+  font-family:var(--font-b);font-size:14px;font-weight:700;
+  cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:8px;
+  -webkit-tap-highlight-color:transparent;transition:opacity 0.15s,transform 0.1s;
+}
+.sig-btn:active{opacity:0.8;transform:scale(0.97)}
+.sig-btn-clear{background:var(--bg3);border:1px solid var(--bd2);color:var(--text2)}
+.sig-btn-save{background:var(--green);color:white}
+.sig-btn-save:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;transform:none}
+.sig-btn svg{width:16px;height:16px;flex-shrink:0}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--bg3);border:1px solid var(--bd2);border-radius:8px;
+  padding:11px 20px;font-size:13px;font-weight:600;color:var(--text);
+  opacity:0;transition:all 0.25s;pointer-events:none;z-index:200;
+  white-space:nowrap;max-width:92vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="data:image/png;base64,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" alt="Caspers Transport" style="height:28px;width:auto;display:block;filter:none;">
+  </div>
+  <div class="driver-chip">
+    <div class="driver-avatar">JD</div>
+    <span>Jake D.</span>
+  </div>
+</div>
+
+<div class="scroll-area">
+  <div class="date-strip">
+    <div class="date-label" id="date-label"></div>
+    <div class="date-sub" id="date-sub"></div>
+  </div>
+  <div class="day-summary">
+    <div class="summary-chip"><div class="summary-chip-val" id="chip-jobs">3</div><div class="summary-chip-lbl">Jobs today</div></div>
+    <div class="summary-chip"><div class="summary-chip-val" id="chip-km">942</div><div class="summary-chip-lbl">Total km</div></div>
+    <div class="summary-chip"><div class="summary-chip-val" id="chip-bikes">3</div><div class="summary-chip-lbl">Bikes</div></div>
+    <div class="summary-chip"><div class="summary-chip-val" id="chip-done" style="color:var(--text3)">0</div><div class="summary-chip-lbl">Completed</div></div>
+  </div>
+  <div class="section-hd"><div class="section-title">Today's Run</div></div>
+  <div class="job-list" id="job-list"></div>
+  <div class="km-footer" id="km-footer"></div>
+</div>
+
+<!-- SIGNATURE MODAL -->
+<div class="sig-modal" id="sig-modal">
+  <div class="sig-modal-topbar">
+    <div class="sig-modal-title">Customer Signature</div>
+    <div class="sig-close-btn" onclick="closeModal()">
+      <svg viewBox="0 0 14 14"><line x1="2" y1="2" x2="12" y2="12" stroke-linecap="round"/><line x1="12" y1="2" x2="2" y2="12" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+  <div class="sig-job-summary">
+    <div class="sig-job-name" id="modal-name"></div>
+    <div class="sig-job-route" id="modal-route"></div>
+    <div class="sig-job-bike" id="modal-bike"></div>
+  </div>
+  <div class="sig-type-selector">
+    <button class="sig-type-btn active" id="btn-type-pickup"  onclick="setSigType('pickup')">At pickup</button>
+    <button class="sig-type-btn"        id="btn-type-dropoff" onclick="setSigType('dropoff')">At dropoff</button>
+  </div>
+  <div class="sig-instruction" id="sig-instruction">Hand the phone to the customer — sign with finger below.</div>
+  <div class="sig-canvas-wrap" id="sig-canvas-wrap">
+    <canvas id="sig-canvas"></canvas>
+    <div class="sig-placeholder" id="sig-placeholder">
+      <svg viewBox="0 0 36 36"><path d="M4 28l8-8 14-14 8 8-14 14-8 2z"/><line x1="18" y1="6" x2="30" y2="18"/></svg>
+      <p>Customer signs here<br>with their finger</p>
+    </div>
+    <div class="sig-saving" id="sig-saving">
+      <div class="spinner"></div>
+      <span>Saving...</span>
+    </div>
+  </div>
+  <div class="sig-bottom">
+    <button class="sig-btn sig-btn-clear" onclick="clearCanvas()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 13l4-4-4-4"/><path d="M9 5l4 4-4 4"/></svg>
+      Clear
+    </button>
+    <button class="sig-btn sig-btn-save" id="sig-save-btn" onclick="saveSignature()" disabled>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="2 8 6 12 14 4"/></svg>
+      Confirm &amp; Save
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────
+// JOBS populated from live API on load
+let JOBS = [];
+const state = {};
+
+// Auth token stored in sessionStorage after Supabase login
+// Set by app/driver/login — see /api/driver/auth
+function getAuthToken() {
+  return sessionStorage.getItem('caspers_driver_token') || '';
+}
+
+async function loadTodayJobs() {
+  showDriverLoading(true);
+  try {
+    const res = await fetch('/api/driver/jobs/today', {
+      headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+    });
+    if (res.status === 401) {
+      // Not logged in — redirect to driver login
+      window.location.href = '/driver/login';
+      return;
+    }
+    const data = await res.json();
+    if (!data.jobs) throw new Error('No jobs in response');
+
+    JOBS = data.jobs.map((j, i) => ({
+      id:              j.id,
+      order:           i + 1,
+      customer: {
+        name:  j.customers?.name  || '—',
+        phone: j.customers?.phone || '',
+      },
+      pickup_time:     j.pickup_time     || '',
+      pickup_address:  j.pickup_address,
+      dropoff_address: j.dropoff_address,
+      distance_km:     j.distance_km     || 0,
+      status:          j.status,
+      bikes:           (j.bikes || []).map(b => ({
+        make:      b.make      || '',
+        model:     b.model     || '',
+        year:      b.year      || '',
+        condition: b.condition || 'running_rideable',
+      })),
+      notes: j.notes || '',
+    }));
+
+    // Init state from live data (preserve any in-session sig captures)
+    JOBS.forEach(j => {
+      if (!state[j.id]) {
+        state[j.id] = { status: j.status, sig_pickup: null, sig_dropoff: null };
+      } else {
+        state[j.id].status = j.status; // always sync status from server
+      }
+    });
+
+    // Update driver name from API
+    if (data.summary?.driverName) {
+      const chip = document.querySelector('.driver-chip span');
+      if (chip) chip.textContent = data.summary.driverName;
+    }
+
+    showDriverLoading(false);
+    render();
+  } catch (err) {
+    console.error('Failed to load jobs:', err);
+    showDriverLoading(false);
+    showToast('Could not load jobs — check connection', 'error');
+    render(); // render empty state
+  }
+}
+
+function showDriverLoading(loading) {
+  const list = document.getElementById('job-list');
+  if (loading && list) {
+    list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-size:13px;">Loading today\'s jobs...</div>';
+  }
+}
+
+// ── RENDER ───────────────────────────────────
+function render() {
+  const today = new Date();
+  document.getElementById('date-label').textContent = today.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+  const done = Object.values(state).filter(s=>s.status==='completed').length;
+  const km   = JOBS.reduce((a,j)=>a+j.distance_km,0);
+  document.getElementById('chip-jobs').textContent  = JOBS.length;
+  document.getElementById('chip-km').textContent    = km;
+  document.getElementById('chip-bikes').textContent = JOBS.reduce((a,j)=>a+j.bikes.length,0);
+  document.getElementById('chip-done').textContent  = done;
+  document.getElementById('chip-done').style.color  = done>0?'var(--green)':'var(--text3)';
+  document.getElementById('date-sub').textContent   = `${JOBS.length} jobs today · ${done} completed`;
+
+  const active = JOBS.filter(j=>state[j.id].status!=='completed');
+  const compl  = JOBS.filter(j=>state[j.id].status==='completed');
+  let html = '';
+  active.forEach((j,i) => { html += card(j, i===0, false); });
+  if (compl.length) {
+    html += `</div><div class="completed-divider"><div class="completed-divider-line"></div><div class="completed-divider-label">Completed (${compl.length})</div><div class="completed-divider-line"></div></div><div class="job-list">`;
+    compl.forEach(j => { html += card(j, false, true); });
+  }
+  document.getElementById('job-list').innerHTML = html;
+
+  document.getElementById('km-footer').innerHTML = `
+    <div class="km-footer-title">Today's Distance</div>
+    <div class="km-row"><span>Roseworthy → first pickup</span><span>~28 km</span></div>
+    <div class="km-row"><span>Loaded runs</span><span>${km} km</span></div>
+    <div class="km-row"><span>Return (est.)</span><span>~50 km</span></div>
+    <div class="km-row total"><span>Estimated total</span><span>${km+78} km</span></div>`;
+}
+
+function card(job, isNext, isDone) {
+  const s = state[job.id];
+  const isTransit = s.status==='in_transit';
+  const statusLabel = {confirmed:'Confirmed',in_transit:'In Transit',completed:'Done'}[s.status]||s.status;
+  const statusCls   = {confirmed:'status-confirmed',in_transit:'status-in_transit',completed:'status-completed'}[s.status]||'';
+
+  const bikeHtml = job.bikes.map(b=>{
+    const name = [b.make,b.model,b.year].filter(Boolean).join(' ');
+    const cl = {running_rideable:'cond-green',non_runner:'cond-amber',broken_seized:'cond-red',custom_part_built:'cond-amber',stripped_pieces:'cond-red'}[b.condition]||'cond-amber';
+    const lb = {running_rideable:'Running',non_runner:'Non-runner',broken_seized:'Seized',custom_part_built:'Custom',stripped_pieces:'Stripped'}[b.condition]||'';
+    return `<div class="bike-pill">${name}<span class="cond ${cl}">${lb}</span></div>`;
+  }).join('');
+
+  const sigStrip = `<div class="sig-strip">
+    <div class="sig-pill ${s.sig_pickup?'done':'pending'}">
+      ${s.sig_pickup
+        ? `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1.5 6 4.5 9 10.5 3"/></svg>`
+        : `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"/><line x1="6" y1="3.5" x2="6" y2="8.5"/></svg>`}
+      Pickup
+    </div>
+    <div class="sig-pill ${s.sig_dropoff?'done':'pending'}">
+      ${s.sig_dropoff
+        ? `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1.5 6 4.5 9 10.5 3"/></svg>`
+        : `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"/><line x1="6" y1="3.5" x2="6" y2="8.5"/></svg>`}
+      Dropoff
+    </div>
+  </div>`;
+
+  const maps = `https://www.google.com/maps/dir/${encodeURIComponent('Roseworthy SA 5371')}/${encodeURIComponent(job.pickup_address)}/${encodeURIComponent(job.dropoff_address)}`;
+
+  let actions = '';
+  if (isDone) {
+    actions = `<div class="job-actions">
+      <div class="btn-done-indicator"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="2 7.5 5.5 11 13 3.5"/></svg>Delivered</div>
+      <button class="action-btn btn-sig ${s.sig_dropoff?'has-sig':''}" onclick="openModal('${job.id}','dropoff')" style="flex:0 0 auto;padding:11px 14px">
+        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 11l4-4 6-6 3 3-6 6-4 1z"/><line x1="9" y1="3" x2="12" y2="6"/></svg>
+        ${s.sig_dropoff?'Signed ✓':'Get sign'}
+      </button>
+    </div>`;
+  } else if (isTransit) {
+    actions = `
+    <div class="job-actions">
+      <a href="${maps}" class="action-btn btn-nav" target="_blank"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7.5" cy="6" r="2.5"/><path d="M7.5 1C4.5 1 2 3.5 2 6.5c0 4 5.5 8.5 5.5 8.5S13 10.5 13 6.5C13 3.5 10.5 1 7.5 1z"/></svg>Navigate</a>
+      <a href="tel:${job.customer.phone}" class="action-btn btn-call"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 2h3l1.5 3.5-2 1.2A8 8 0 009.3 9.5l1.2-2L14 9v3c0 1-1.5 2-3 1.5A12 12 0 011.5 5C1 3.5 2 2 3 2z"/></svg>Call</a>
+    </div>
+    <div class="job-actions" style="padding-top:0">
+      <button class="action-btn btn-sig ${s.sig_pickup?'has-sig':''}" onclick="openModal('${job.id}','pickup')">
+        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 11l4-4 6-6 3 3-6 6-4 1z"/><line x1="9" y1="3" x2="12" y2="6"/></svg>
+        ${s.sig_pickup?'Pickup signed ✓':'Get pickup sig'}
+      </button>
+      <button class="action-btn btn-complete" onclick="markComplete('${job.id}')">
+        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="2 7.5 5.5 11 13 3.5"/></svg>Done
+      </button>
+    </div>`;
+  } else {
+    actions = `<div class="job-actions">
+      <a href="${maps}" class="action-btn btn-nav" target="_blank"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7.5" cy="6" r="2.5"/><path d="M7.5 1C4.5 1 2 3.5 2 6.5c0 4 5.5 8.5 5.5 8.5S13 10.5 13 6.5C13 3.5 10.5 1 7.5 1z"/></svg>Navigate</a>
+      <a href="tel:${job.customer.phone}" class="action-btn btn-call"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 2h3l1.5 3.5-2 1.2A8 8 0 009.3 9.5l1.2-2L14 9v3c0 1-1.5 2-3 1.5A12 12 0 011.5 5C1 3.5 2 2 3 2z"/></svg>Call</a>
+      <button class="action-btn btn-transit" onclick="markTransit('${job.id}')"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 7.5h11M9 3.5l4 4-4 4"/></svg>Picked up</button>
+    </div>`;
+  }
+
+  const numContent = isDone
+    ? `<svg viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="2 7.5 5.5 11 13 3.5"/></svg>`
+    : job.order;
+
+  return `<div class="job-card ${isNext&&!isDone?'active-job':''} ${isDone?'done-job':''}" id="card-${job.id}">
+    <div class="job-card-header">
+      <div class="job-num">${numContent}</div>
+      <div class="job-card-meta">
+        <div class="job-name">${job.customer.name}</div>
+        <div class="job-time">Pickup ${ft(job.pickup_time)} · ${job.distance_km} km</div>
+      </div>
+      <div class="job-status-badge ${statusCls}">${statusLabel}</div>
+    </div>
+    <div class="job-route">
+      <div class="route-line"><div class="route-dot"></div><div class="route-vline"></div><div class="route-dot end"></div></div>
+      <div class="route-addrs">
+        <div class="route-point"><div class="route-label">Pickup from</div><div class="route-addr">${job.pickup_address}</div></div>
+        <div class="route-point"><div class="route-label">Deliver to</div><div class="route-addr">${job.dropoff_address}</div></div>
+      </div>
+    </div>
+    <div class="bike-info">${bikeHtml}</div>
+    ${job.notes?`<div class="job-notes"><strong>Note:</strong> ${job.notes}</div>`:''}
+    ${sigStrip}
+    ${actions}
+  </div>`;
+}
+
+// ── STATUS ────────────────────────────────────
+function markTransit(id) {
+  state[id].status='in_transit';
+  patchStatus(id,'in_transit');
+  showToast('Picked up — tap "Get pickup sig" for customer signature','success');
+  render();
+}
+function markComplete(id) {
+  state[id].status='completed';
+  patchStatus(id,'completed');
+  showToast('Job complete — invoice will be sent automatically','success');
+  render();
+}
+async function patchStatus(id,status) {
+  try { await fetch(`/api/driver/jobs/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})}); }
+  catch(e){}
+}
+
+// ── SIGNATURE MODAL ───────────────────────────
+let curJob=null, curType='pickup', drawing=false, hasStroke=false, lx=0, ly=0;
+const cvs = document.getElementById('sig-canvas');
+const ctx = cvs.getContext('2d');
+
+function openModal(jobId, type) {
+  curJob=jobId; curType=type;
+  const job=JOBS.find(j=>j.id===jobId);
+  document.getElementById('modal-name').textContent  = job.customer.name;
+  document.getElementById('modal-route').textContent =
+    job.pickup_address.replace(/, South Australia|, SA/g,'').replace(/\s\d{4}$/,'') + ' → ' +
+    job.dropoff_address.replace(/, South Australia|, SA/g,'').replace(/\s\d{4}$/,'');
+  document.getElementById('modal-bike').textContent  =
+    job.bikes.map(b=>[b.make,b.model,b.year].filter(Boolean).join(' ')).join(', ');
+  setSigType(type);
+  clearCanvas();
+  document.getElementById('sig-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+  requestAnimationFrame(resizeCvs);
+}
+
+function closeModal() {
+  document.getElementById('sig-modal').classList.remove('open');
+  document.body.style.overflow='';
+  curJob=null;
+}
+
+function setSigType(t) {
+  curType=t;
+  document.getElementById('btn-type-pickup').classList.toggle('active', t==='pickup');
+  document.getElementById('btn-type-dropoff').classList.toggle('active', t==='dropoff');
+  const already = curJob && state[curJob]?.[`sig_${t}`];
+  document.getElementById('sig-instruction').textContent = already
+    ? `${t==='pickup'?'Pickup':'Dropoff'} already captured. Re-capture if needed.`
+    : 'Hand the phone to the customer — sign with finger below.';
+  clearCanvas();
+}
+
+function resizeCvs() {
+  const wrap = document.getElementById('sig-canvas-wrap');
+  const r    = wrap.getBoundingClientRect();
+  cvs.width=r.width; cvs.height=r.height;
+  clearCanvas(true);
+}
+
+function clearCanvas(keepState=false) {
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  if (!keepState) {
+    hasStroke=false;
+    document.getElementById('sig-placeholder').style.display='flex';
+    document.getElementById('sig-save-btn').disabled=true;
+  }
+}
+
+function pos(e) {
+  const r=cvs.getBoundingClientRect(), s=e.touches?e.touches[0]:e;
+  return {x:(s.clientX-r.left)*(cvs.width/r.width), y:(s.clientY-r.top)*(cvs.height/r.height)};
+}
+
+cvs.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=pos(e);lx=p.x;ly=p.y;if(!hasStroke){hasStroke=true;document.getElementById('sig-placeholder').style.display='none';document.getElementById('sig-save-btn').disabled=false;}},{passive:false});
+cvs.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#0D0D0D';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();lx=p.x;ly=p.y;},{passive:false});
+cvs.addEventListener('touchend',()=>{drawing=false;});
+cvs.addEventListener('mousedown',e=>{drawing=true;const p=pos(e);lx=p.x;ly=p.y;if(!hasStroke){hasStroke=true;document.getElementById('sig-placeholder').style.display='none';document.getElementById('sig-save-btn').disabled=false;}});
+cvs.addEventListener('mousemove',e=>{if(!drawing)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#0D0D0D';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();lx=p.x;ly=p.y;});
+cvs.addEventListener('mouseup',()=>{drawing=false;});
+cvs.addEventListener('mouseleave',()=>{drawing=false;});
+
+async function saveSignature() {
+  if (!curJob||!hasStroke) return;
+  document.getElementById('sig-saving').classList.add('show');
+
+  // Flatten onto white background
+  const off=document.createElement('canvas');
+  off.width=cvs.width; off.height=cvs.height;
+  const oc=off.getContext('2d');
+  oc.fillStyle='#FFFFFF'; oc.fillRect(0,0,off.width,off.height);
+  oc.drawImage(cvs,0,0);
+  const dataUrl=off.toDataURL('image/png');
+
+  try {
+    state[curJob][`sig_${curType}`]=dataUrl;
+    // POST to API — saves to Supabase + regenerates PDF with sig embedded
+    await fetch(`/api/driver/jobs/${curJob}/signature`,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:curType, signature:dataUrl}),
+    }).catch(()=>{});
+
+    document.getElementById('sig-saving').classList.remove('show');
+    closeModal();
+    showToast(`${curType==='pickup'?'Pickup':'Dropoff'} signature saved`,'success');
+    render();
+  } catch(e) {
+    document.getElementById('sig-saving').classList.remove('show');
+    showToast('Save failed — try again','error');
+  }
+}
+
+// ── HELPERS ───────────────────────────────────
+function ft(t) {
+  if(!t) return 'TBC';
+  const [h,m]=t.split(':').map(Number);
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+}
+function showToast(msg,type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+window.addEventListener('resize',()=>{
+  if(document.getElementById('sig-modal').classList.contains('open')) resizeCvs();
+});
+
+// Boot: load live jobs from API, fall back to empty state if offline
+loadTodayJobs();
+</script>
+</body>
+</html>
