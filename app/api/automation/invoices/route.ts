@@ -7,6 +7,7 @@
 // Also schedules the review request (3-day delay handled by review-requests trigger)
 // ============================================================
 
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, resend, validateCronSecret,

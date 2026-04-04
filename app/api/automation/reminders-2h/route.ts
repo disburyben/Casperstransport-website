@@ -6,6 +6,7 @@
 // Sends a brief SMS to customer mobile
 // ============================================================
 
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, twilioClient, validateCronSecret,

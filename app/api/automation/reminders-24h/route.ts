@@ -6,6 +6,7 @@
 // Sends reminder email to customer with full booking summary
 // ============================================================
 
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, resend, validateCronSecret,

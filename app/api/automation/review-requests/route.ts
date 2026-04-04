@@ -6,6 +6,7 @@
 // Sends a brief, friendly review request with Google + Facebook links
 // ============================================================
 
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, resend, validateCronSecret,
