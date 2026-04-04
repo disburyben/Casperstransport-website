@@ -1003,7 +1003,7 @@ async function loadBookings() {
   showLoadingState(true);
   const { data, error } = await _supabase
     .from('bookings')
-    .select(\`
+    .select(`
       id, status, pickup_date, pickup_time,
       pickup_address, dropoff_address,
       distance_km, return_km, deposit_paid,
@@ -1013,7 +1013,7 @@ async function loadBookings() {
       quotes ( total_aud, version, base_rate, km_loaded,
                condition_surcharge, multi_bike_discount,
                fuel_levy_amount, km_rate_loaded )
-    \`)
+    `)
     .order('created_at', { ascending: false });
 
   if (error) {
