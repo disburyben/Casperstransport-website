@@ -33,16 +33,8 @@ export async function POST(req: NextRequest) {
     .select(BOOKING_QUERY)
     .eq('status', 'completed')
     .eq('pickup_date', targetDate)
-    .not('id', 'in', `(
-      select booking_id from comms_log
-      where comms_type = 'review_request_email'
-      and status = 'sent'
-    )`)
-    .in('id', `(
-      select booking_id from comms_log
-      where comms_type = 'invoice_email'
-      and status = 'sent'
-    )`);
+    .not('id', 'in', `(select booking_id from comms_log where comms_type = 'review_request_email' and status = 'sent')`)
+    .filter('id', 'in', `(select booking_id from comms_log where comms_type = 'invoice_email' and status = 'sent')`);
 
   if (error) {
     console.error('Review request query failed:', error);
