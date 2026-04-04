@@ -14,13 +14,12 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient }              from '@supabase/supabase-js';
-import { Resend }                    from 'resend';
+import { getResend } from '@/lib/clients';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-const resend   = new Resend(process.env.RESEND_API_KEY!);
 
 // ── GET: Stream PDF inline (admin print/download) ───────────
 export async function GET(
@@ -70,7 +69,7 @@ export async function POST(
   const dateStr    = new Date(pickupDate + 'T12:00:00')
     .toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from:    'Caspers Transport <bookings@casperstransport.com.au>',
     to:      ['admin@casperstransport.com.au'],
     subject: `Job Sheet — ${customer?.name} · ${dateStr}`,

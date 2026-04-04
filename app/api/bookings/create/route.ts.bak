@@ -1,15 +1,26 @@
 export const dynamic = 'force-dynamic';
 // app/api/bookings/create/route.ts
-// Handles the full booking creation flow
+// Handles the full booking creation flow:
+//   1. Upsert customer
+//   2. Create booking record
+//   3. Create bike records
+//   4. Create quote record
+//   5. Send quote email via Resend
+//   6. If Stripe deposit: create Stripe checkout session
+// POST /api/bookings/create
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient }              from '@supabase/supabase-js';
-import { getResend, getStripe }      from '@/lib/clients';
+import { Resend }                    from 'resend';
+import Stripe                        from 'stripe';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!  // service role bypasses RLS for server-side inserts
 );
+
+const resend = new Resend(process.env.RESEND_API_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 
 const APP_URL   = process.env.NEXT_PUBLIC_APP_URL!;
 const ADMIN_EMAIL = 'admin@casperstransport.com.au';
@@ -75,9 +86,10 @@ export async function POST(req: NextRequest) {
       if (bikesError) throw new Error(`Bikes insert failed: ${bikesError.message}`);
     }
 
-    // ---- 4. Create quote record ----
+    // ---- 4. Create quote record (if quote data available) ----
     let quoteId: string | null = null;
     if (quote) {
+      // Fetch current rate card snapshot
       const { data: rc } = await supabase.from('rate_card').select('*').limit(1).single();
 
       const { data: quoteData, error: quoteError } = await supabase
@@ -106,13 +118,13 @@ export async function POST(req: NextRequest) {
 
       if (!quoteError) quoteId = quoteData?.id;
 
+      // Update booking status to quote_sent
       await supabase.from('bookings')
         .update({ status: 'quote_sent' })
         .eq('id', bookingId);
     }
 
-    // ---- 5. Send quote email ----
-    const resend = getResend();
+    // ---- 5. Send quote email to customer ----
     const bikesSummary = bikes.map((b: any) =>
       `${b.make || ''} ${b.model || ''} ${b.year || ''}`.trim() ||
       `${b.type.replace(/_/g, ' ')} (${b.condition.replace(/_/g, ' ')})`
@@ -154,10 +166,9 @@ export async function POST(req: NextRequest) {
       { booking_id: bookingId, comms_type: 'admin_notification', status: 'sent', recipient: ADMIN_EMAIL, sent_at: new Date().toISOString() },
     ]);
 
-    // ---- 6. Stripe checkout ----
+    // ---- 6. Stripe checkout (if deposit selected) ----
     let stripeUrl: string | null = null;
     if (payment_method === 'stripe_deposit' && quote?.deposit > 0) {
-      const stripe = getStripe();
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode:                 'payment',
@@ -168,7 +179,7 @@ export async function POST(req: NextRequest) {
               name:        `Caspers Transport — Deposit`,
               description: `Transport deposit for ${bikesSummary}. Pickup: ${pickup_date}`,
             },
-            unit_amount: Math.round(quote.deposit * 100),
+            unit_amount: Math.round(quote.deposit * 100), // cents
           },
           quantity: 1,
         }],
@@ -180,6 +191,7 @@ export async function POST(req: NextRequest) {
 
       stripeUrl = session.url;
 
+      // Store Stripe session ID
       await supabase.from('bookings')
         .update({ stripe_payment_id: session.id })
         .eq('id', bookingId);
@@ -192,6 +204,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+// ============================================================
+// EMAIL TEMPLATES
+// ============================================================
 
 function buildQuoteEmail({ name, bikesSummary, pickup_address, dropoff_address,
   pickup_date, quoteTotal, depositAmt, payment_method, acceptUrl, quote }: any) {
@@ -220,9 +236,11 @@ function buildQuoteEmail({ name, bikesSummary, pickup_address, dropoff_address,
           CASPERS <span style="color:#4FC1DB;">TRANSPORT</span>
         </span>
       </div>
+
       <div style="padding:32px;">
         <p style="font-size:18px;font-weight:600;margin:0 0 8px;">Hi ${name},</p>
         <p style="color:#666;margin:0 0 24px;">Thanks for your booking request. Here's your quote:</p>
+
         <div style="background:#F5F5F4;border-radius:6px;padding:20px;margin-bottom:24px;">
           <p style="margin:0 0 6px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#898880;">Bike(s)</p>
           <p style="margin:0 0 16px;font-weight:500;">${bikesSummary}</p>
@@ -232,11 +250,31 @@ function buildQuoteEmail({ name, bikesSummary, pickup_address, dropoff_address,
           <p style="margin:0 0 6px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#898880;">Date</p>
           <p style="margin:0;">${dateFormatted}</p>
         </div>
-        ${breakdownRows ? `<table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:24px;">${breakdownRows}</table>` : ''}
-        <div style="text-align:center;margin:32px 0;">${ctaButton}</div>
-        ${payment_method === 'follow_up' ? `<p style="text-align:center;font-size:13px;color:#898880;margin-top:16px;">A member of our team will be in touch to arrange payment and confirm your booking.</p>` : `<p style="text-align:center;font-size:13px;color:#898880;margin-top:16px;">Click the button above to pay your deposit and lock in your booking.</p>`}
+
+        ${breakdownRows ? `
+        <table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:24px;">
+          ${breakdownRows}
+        </table>` : ''}
+
+        <div style="text-align:center;margin:32px 0;">
+          ${ctaButton}
+        </div>
+
+        ${payment_method === 'follow_up' ? `
+        <p style="text-align:center;font-size:13px;color:#898880;margin-top:16px;">
+          A member of our team will be in touch to arrange payment and confirm your booking.
+        </p>` : `
+        <p style="text-align:center;font-size:13px;color:#898880;margin-top:16px;">
+          Click the button above to pay your deposit and lock in your booking.
+        </p>`}
+
         <hr style="border:none;border-top:1px solid #E8E7E5;margin:32px 0;">
-        <p style="font-size:13px;color:#898880;margin:0;">Questions? Call or text us at <a href="tel:+61XXXXXXXXXX" style="color:#4FC1DB;">0X XXXX XXXX</a> or reply to this email.<br><em>Note: This quote is an estimate. Final price confirmed before booking is locked in.</em></p>
+
+        <p style="font-size:13px;color:#898880;margin:0;">
+          Questions? Call or text us at <a href="tel:+61XXXXXXXXXX" style="color:#4FC1DB;">0X XXXX XXXX</a>
+          or reply to this email.<br>
+          <em>Note: This quote is an estimate. Final price confirmed before booking is locked in.</em>
+        </p>
       </div>
     </div>
   `;
@@ -251,7 +289,9 @@ function buildAdminNotificationEmail({ name, email, phone, bikesSummary,
   return `
     <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;">
       <div style="background:#0D0D0D;padding:20px 24px;">
-        <span style="font-size:16px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:0.05em;">New Booking Request</span>
+        <span style="font-size:16px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:0.05em;">
+          New Booking Request
+        </span>
       </div>
       <div style="padding:24px;background:#F5F5F4;">
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
@@ -267,7 +307,9 @@ function buildAdminNotificationEmail({ name, email, phone, bikesSummary,
           ${notes ? `<tr><td style="padding:6px 0;color:#666;">Notes</td><td>${notes}</td></tr>` : ''}
         </table>
         <div style="margin-top:24px;">
-          <a href="${dashboardUrl}" style="background:#4FC1DB;color:white;padding:12px 24px;border-radius:6px;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;">View in Dashboard →</a>
+          <a href="${dashboardUrl}" style="background:#4FC1DB;color:white;padding:12px 24px;border-radius:6px;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;">
+            View in Dashboard →
+          </a>
         </div>
       </div>
     </div>

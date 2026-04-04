@@ -1,22 +1,18 @@
 export const dynamic = 'force-dynamic';
-// app/api/webhooks/stripe/route.ts
-// Handles Stripe checkout.session.completed
-// Updates booking status to confirmed when deposit is paid
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient }              from '@supabase/supabase-js';
-import { Resend }                    from 'resend';
+import { getResend, getStripe }      from '@/lib/clients';
 import Stripe                        from 'stripe';
 
-const stripe    = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 const supabase  = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-const resend    = new Resend(process.env.RESEND_API_KEY!);
 const APP_URL   = process.env.NEXT_PUBLIC_APP_URL!;
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe();
   const body      = await req.text();
   const signature = req.headers.get('stripe-signature')!;
 
@@ -35,7 +31,6 @@ export async function POST(req: NextRequest) {
 
     if (!bookingId) return NextResponse.json({ received: true });
 
-    // Update booking — confirmed + deposit paid
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .update({
@@ -44,11 +39,7 @@ export async function POST(req: NextRequest) {
         stripe_payment_id: session.payment_intent as string,
       })
       .eq('id', bookingId)
-      .select(`
-        *,
-        customers ( name, email, phone ),
-        bikes ( bike_type, condition, make, model, year )
-      `)
+      .select('*, customers ( name, email, phone ), bikes ( bike_type, condition, make, model, year )')
       .single();
 
     if (bookingError) {
@@ -56,10 +47,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
     }
 
-    // Create calendar blocks
     await createCalendarBlocks(bookingId, booking);
 
-    // Update customer stats
     const { data: quote } = await supabase
       .from('quotes')
       .select('total_aud')
@@ -75,10 +64,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Send confirmation email to customer
     await sendConfirmationEmail(booking);
 
-    // Log comms
     await supabase.from('comms_log').insert({
       booking_id: bookingId,
       comms_type: 'confirmation_email',
@@ -91,15 +78,12 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true });
 }
 
-// ---- Create calendar blocks from booking data ----
 async function createCalendarBlocks(bookingId: string, booking: any) {
   const { data: rc } = await supabase.from('rate_card').select('*').limit(1).single();
   if (!rc) return;
 
   const pickupDateTime = new Date(`${booking.pickup_date}T${booking.pickup_time || '09:00:00'}`);
-
-  // Work backwards from pickup time to get departure from base
-  const driveToPickupMin = Math.ceil((booking.distance_km || 0) / 1); // rough estimate
+  const driveToPickupMin = Math.ceil((booking.distance_km || 0) / 1);
   const loadTimeMin      = rc.load_time_standard_min;
   const driveLoadedMin   = Math.ceil((booking.distance_km || 0) / 1);
   const driveReturnMin   = Math.ceil((booking.return_km   || 0) / 1);
@@ -125,8 +109,8 @@ async function createCalendarBlocks(bookingId: string, booking: any) {
   );
 }
 
-// ---- Confirmation email ----
 async function sendConfirmationEmail(booking: any) {
+  const resend = getResend();
   const customer = booking.customers;
   const bikes    = booking.bikes || [];
 
@@ -143,37 +127,6 @@ async function sendConfirmationEmail(booking: any) {
     from:    'Caspers Transport <bookings@casperstransport.com.au>',
     to:      [customer.email],
     subject: `Booking confirmed — ${dateFormatted}`,
-    html: `
-      <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;">
-        <div style="background:#0D0D0D;padding:24px 32px;">
-          <span style="font-size:20px;font-weight:700;color:white;letter-spacing:0.05em;text-transform:uppercase;">
-            CASPERS <span style="color:#4FC1DB;">TRANSPORT</span>
-          </span>
-        </div>
-        <div style="padding:32px;">
-          <div style="background:#EAF5EE;border-radius:6px;padding:16px 20px;margin-bottom:24px;">
-            <p style="margin:0;font-weight:700;color:#1A7A4A;font-size:16px;">✓ Booking Confirmed</p>
-          </div>
-
-          <p style="font-size:18px;font-weight:600;margin:0 0 8px;">Hi ${customer.name},</p>
-          <p style="color:#666;margin:0 0 24px;">Your booking is locked in. Here are your details:</p>
-
-          <div style="background:#F5F5F4;border-radius:6px;padding:20px;margin-bottom:24px;">
-            <table style="width:100%;border-collapse:collapse;font-size:14px;">
-              <tr><td style="padding:5px 0;color:#666;width:120px;">Bike(s)</td><td style="font-weight:500;">${bikesSummary}</td></tr>
-              <tr><td style="padding:5px 0;color:#666;">Pickup from</td><td>${booking.pickup_address}</td></tr>
-              <tr><td style="padding:5px 0;color:#666;">Delivering to</td><td>${booking.dropoff_address}</td></tr>
-              <tr><td style="padding:5px 0;color:#666;">Date</td><td style="font-weight:600;">${dateFormatted}</td></tr>
-              ${booking.pickup_time ? `<tr><td style="padding:5px 0;color:#666;">Time</td><td>${booking.pickup_time}</td></tr>` : ''}
-            </table>
-          </div>
-
-          <p style="font-size:14px;color:#666;">
-            Our driver will be in touch closer to the date with an exact arrival time.
-            Any questions, call or text us at <a href="tel:+61XXXXXXXXXX" style="color:#4FC1DB;">0X XXXX XXXX</a>.
-          </p>
-        </div>
-      </div>
-    `,
+    html: `<div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;"><div style="background:#0D0D0D;padding:24px 32px;"><span style="font-size:20px;font-weight:700;color:white;letter-spacing:0.05em;text-transform:uppercase;">CASPERS <span style="color:#4FC1DB;">TRANSPORT</span></span></div><div style="padding:32px;"><div style="background:#EAF5EE;border-radius:6px;padding:16px 20px;margin-bottom:24px;"><p style="margin:0;font-weight:700;color:#1A7A4A;font-size:16px;">✓ Booking Confirmed</p></div><p style="font-size:18px;font-weight:600;margin:0 0 8px;">Hi ${customer.name},</p><p style="color:#666;margin:0 0 24px;">Your booking is locked in. Here are your details:</p><div style="background:#F5F5F4;border-radius:6px;padding:20px;margin-bottom:24px;"><table style="width:100%;border-collapse:collapse;font-size:14px;"><tr><td style="padding:5px 0;color:#666;width:120px;">Bike(s)</td><td style="font-weight:500;">${bikesSummary}</td></tr><tr><td style="padding:5px 0;color:#666;">Pickup from</td><td>${booking.pickup_address}</td></tr><tr><td style="padding:5px 0;color:#666;">Delivering to</td><td>${booking.dropoff_address}</td></tr><tr><td style="padding:5px 0;color:#666;">Date</td><td style="font-weight:600;">${dateFormatted}</td></tr>${booking.pickup_time ? `<tr><td style="padding:5px 0;color:#666;">Time</td><td>${booking.pickup_time}</td></tr>` : ''}</table></div><p style="font-size:14px;color:#666;">Our driver will be in touch closer to the date with an exact arrival time. Any questions, call or text us at <a href="tel:+61XXXXXXXXXX" style="color:#4FC1DB;">0X XXXX XXXX</a>.</p></div></div>`,
   });
 }
