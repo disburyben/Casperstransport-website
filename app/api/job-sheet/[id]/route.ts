@@ -107,6 +107,7 @@ async function fetchBooking(id: string) {
       id, status, pickup_date, pickup_time,
       pickup_address, dropoff_address,
       distance_km, return_km, deposit_paid, notes,
+      sig_pickup, sig_pickup_at, sig_dropoff, sig_dropoff_at,
       customers ( name, email, phone ),
       bikes ( bike_type, condition, make, model, year, notes ),
       quotes ( base_rate, total_aud, condition_surcharge,
@@ -358,18 +359,50 @@ async function buildJobSheetPDF(booking: any): Promise<Uint8Array> {
   }
 
   // ── SIGN-OFF BOX ──
-  const sigH = 56;
+  const sigH = 70;
   const sigY = Math.max(y - sigH, M + sigH);
   rect(M, sigY, CW, sigH, cGreyLite);
   page.drawRectangle({ x: M, y: sigY, width: CW, height: sigH, borderColor: cGreyBdr, borderWidth: 0.5 });
 
-  const sigCols = ['Driver signature', 'Customer signature', 'Time delivered'];
+  const sigCols = ['Customer sig — pickup', 'Customer sig — dropoff', 'Time delivered'];
   const colW3   = CW / 3;
+
+  // Embed captured signature images if present
+  const embedSig = async (dataUrl: string | null | undefined, sx: number) => {
+    if (!dataUrl || !dataUrl.startsWith('data:image/png;base64,')) return;
+    try {
+      const b64  = dataUrl.replace('data:image/png;base64,', '');
+      const buf  = Buffer.from(b64, 'base64');
+      const img  = await doc.embedPng(buf);
+      const iW   = colW3 - 16;
+      const iH   = sigH - 22;
+      const dims = img.scaleToFit(iW, iH);
+      page.drawImage(img, {
+        x:      sx + 8 + (iW - dims.width) / 2,
+        y:      sigY + 16,
+        width:  dims.width,
+        height: dims.height,
+      });
+    } catch (_) { /* skip if embed fails */ }
+  };
+
+  await embedSig(booking.sig_pickup,  M);
+  await embedSig(booking.sig_dropoff, M + colW3);
+
   for (let i = 0; i < 3; i++) {
     const sx = M + i * colW3;
-    text(sigCols[i], sx + 8, sigY + sigH - 14, fontReg, 7.5, cGreyMid);
-    page.drawLine({ start: { x: sx + 8, y: sigY + 16 }, end: { x: sx + colW3 - 12, y: sigY + 16 }, thickness: 0.5, color: cGreyBdr });
+    text(sigCols[i], sx + 8, sigY + sigH - 12, fontReg, 7, cGreyMid);
     if (i < 2) page.drawLine({ start: { x: sx + colW3, y: sigY + 8 }, end: { x: sx + colW3, y: sigY + sigH - 8 }, thickness: 0.5, color: cGreyBdr });
+  }
+
+  // Show timestamps under signatures if captured
+  if (booking.sig_pickup_at) {
+    const t = new Date(booking.sig_pickup_at).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    text(`Signed ${t}`, M + 8, sigY + 4, fontReg, 6.5, cGreen);
+  }
+  if (booking.sig_dropoff_at) {
+    const t = new Date(booking.sig_dropoff_at).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    text(`Signed ${t}`, M + colW3 + 8, sigY + 4, fontReg, 6.5, cGreen);
   }
 
   // ── FOOTER ──

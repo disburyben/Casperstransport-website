@@ -14,7 +14,7 @@ import {
 } from '@/automation/triggers';
 
 const GOOGLE_REVIEW_URL   = process.env.GOOGLE_REVIEW_URL   || 'https://g.page/r/YOUR_GOOGLE_REVIEW_LINK';
-const FACEBOOK_REVIEW_URL = process.env.FACEBOOK_REVIEW_URL || 'https://www.facebook.com/CaspersTransport/reviews';
+const FACEBOOK_REVIEW_URL = process.env.FACEBOOK_REVIEW_URL || 'https://www.facebook.com/Casperstransport';
 
 export async function POST(req: NextRequest) {
   if (!validateCronSecret(req)) {

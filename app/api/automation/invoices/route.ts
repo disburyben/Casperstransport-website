@@ -131,7 +131,7 @@ function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoic
   });
 
   const base   = parseFloat(quote.base_rate      || 120).toFixed(2);
-  const kmCost = parseFloat(quote.km_loaded       || 0).toFixed(2);
+  const kmCost = (parseFloat(quote.km_loaded || 0) * parseFloat(quote.km_rate_loaded || 0)).toFixed(2);
   const condS  = parseFloat(quote.condition_surcharge || 0).toFixed(2);
   const disc   = parseFloat(quote.multi_bike_discount || 0).toFixed(2);
   const fuel   = parseFloat(quote.fuel_levy_amount    || 0).toFixed(2);

@@ -691,7 +691,10 @@ async function saveSignature() {
     // POST to API — saves to Supabase + regenerates PDF with sig embedded
     await fetch(`/api/driver/jobs/${curJob}/signature`,{
       method:'PATCH',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + getAuthToken(),
+      },
       body:JSON.stringify({type:curType, signature:dataUrl}),
     }).catch(()=>{});
 

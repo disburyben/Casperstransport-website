@@ -39,5 +39,10 @@ export const BOOKING_QUERY = `
   needs_review, notes, deposit_paid, payment_method,
   customers ( id, name, email, phone ),
   bikes ( bike_type, condition, make, model, year ),
-  quotes ( total_aud, version, accepted_at )
+  quotes (
+    total_aud, version, accepted_at,
+    base_rate, km_loaded, km_rate_loaded,
+    condition_surcharge, multi_bike_discount,
+    fuel_levy_amount, stripe_deposit_pct
+  )
 `;
