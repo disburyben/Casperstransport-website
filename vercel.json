@@ -7,13 +7,13 @@
     },
     {
       "path": "/api/automation/reminders-2h",
-      "schedule": "*/30 * * * *",
-      "comment": "2h SMS reminders — fires every 30 min. Checks if any confirmed job has pickup in 110–150 min window and sends SMS."
+      "schedule": "0 6 * * *",
+      "comment": "2h SMS reminders — Hobby plan: runs once daily at 4PM ACST. Upgrade to Pro for every-30-min checks."
     },
     {
       "path": "/api/automation/invoices",
-      "schedule": "*/15 * * * *",
-      "comment": "Post-job invoices — fires every 15 min. Finds newly completed bookings without an invoice sent and dispatches."
+      "schedule": "0 10 * * *",
+      "comment": "Post-job invoices — Hobby plan: runs once daily at 8PM ACST. Upgrade to Pro for every-15-min checks."
     },
     {
       "path": "/api/automation/review-requests",
