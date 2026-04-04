@@ -955,14 +955,14 @@ let BOOKINGS = [];
 let _supabase = null;
 
 async function initSupabase() {
-  const { createBrowserClient } = await import('https://esm.sh/@supabase/ssr@0.5.2');
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   const url  = document.documentElement.dataset.supabaseUrl;
   const anon = document.documentElement.dataset.supabaseAnon;
   if (!url || !anon) {
     console.warn('Supabase env vars missing — check data attributes on <html>');
     return null;
   }
-  return createBrowserClient(url, anon);
+  return createClient(url, anon);
 }
 
 function shapeBooking(raw) {
