@@ -2,6 +2,8 @@
 // Returns the current user's access token if authenticated
 // Used by driver.html to seed sessionStorage when cookie auth exists
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient }        from '@supabase/ssr';
 
