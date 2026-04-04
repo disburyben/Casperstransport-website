@@ -908,45 +908,58 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
            VIEW: DRIVERS
       ══════════════════════════════════════ -->
       <div class="view" id="view-drivers">
-        <div style="max-width:640px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-            <div>
-              <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:4px">Drivers</div>
-              <div style="font-size:13px;color:var(--text3)">Manage who can access the driver portal.</div>
+        <div style="max-width:680px">
+
+          <!-- Add driver form -->
+          <div class="detail-card" style="margin-bottom:20px">
+            <div class="detail-card-header">
+              <div class="detail-card-title">Add New User</div>
             </div>
-            <button class="btn btn-sm" onclick="document.getElementById('add-driver-form').style.display=document.getElementById('add-driver-form').style.display==='none'?'block':'none'">+ Add Driver</button>
+            <div class="detail-card-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+                <div>
+                  <div class="info-label" style="margin-bottom:6px">Full name</div>
+                  <input id="new-user-name" type="text" placeholder="e.g. Jake Smith"
+                    style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
+                </div>
+                <div>
+                  <div class="info-label" style="margin-bottom:6px">Email address</div>
+                  <input id="new-user-email" type="email" placeholder="driver@email.com"
+                    style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
+                </div>
+                <div>
+                  <div class="info-label" style="margin-bottom:6px">Temporary password</div>
+                  <input id="new-user-pass" type="text" placeholder="Min 6 characters"
+                    style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
+                </div>
+                <div>
+                  <div class="info-label" style="margin-bottom:6px">Role</div>
+                  <select id="new-user-role"
+                    style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
+                    <option value="driver">Driver</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.6">
+                The user will receive a login invite to the email above. They can change their password after first login.
+              </div>
+              <div id="invite-msg" style="display:none;font-size:13px;padding:10px 12px;border-radius:var(--radius);margin-bottom:14px"></div>
+              <button class="btn btn-primary btn-sm" id="invite-btn" onclick="inviteUser()">+ Add User</button>
+            </div>
           </div>
 
-          <div id="add-driver-form" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px">
-            <div style="font-size:13px;font-weight:600;margin-bottom:16px">Invite New Driver</div>
-            <div style="display:grid;gap:12px">
-              <div>
-                <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px">Full Name</label>
-                <input id="driver-name" type="text" placeholder="e.g. Jake Smith" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px">
-              </div>
-              <div>
-                <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px">Email Address</label>
-                <input id="driver-email" type="email" placeholder="driver@email.com" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px">
-              </div>
-              <div>
-                <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px">Temporary Password</label>
-                <input id="driver-pass" type="text" placeholder="They can change after first login" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px">
-              </div>
-              <div style="font-size:12px;color:var(--text3);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px">
-                <strong>How to add a driver:</strong><br>
-                1. Go to <a href="https://supabase.com/dashboard/project/ipwtvxzwbmrjjqytbdfy/auth/users" target="_blank" style="color:var(--red)">Supabase → Authentication → Users</a><br>
-                2. Click <strong>Invite user</strong> → enter their email<br>
-                3. Copy the user's UUID from the users list<br>
-                4. Run in <a href="https://supabase.com/dashboard/project/ipwtvxzwbmrjjqytbdfy/sql" target="_blank" style="color:var(--red)">SQL Editor</a>:<br>
-                <code style="display:block;margin-top:8px;padding:8px;background:var(--bg);border-radius:4px;font-size:11px;word-break:break-all">INSERT INTO user_profiles (id, role) VALUES ('&lt;uuid&gt;', 'driver');</code>
-              </div>
+          <!-- Users list -->
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="detail-card-title">All Users</div>
+              <button class="btn btn-sm btn-ghost" onclick="loadDrivers()">Refresh</button>
+            </div>
+            <div class="detail-card-body" style="padding:0">
+              <div id="users-list-body" style="color:var(--text3);font-size:13px;padding:20px">Loading...</div>
             </div>
           </div>
 
-          <div id="drivers-list" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Active Drivers</div>
-            <div id="drivers-tbody" style="padding:20px;color:var(--text3);font-size:13px">Loading...</div>
-          </div>
         </div>
       </div><!-- /view-drivers -->
 
@@ -1623,36 +1636,142 @@ function formatDate(d){
 }
 
 // ============================================================
-// DRIVERS
+// DRIVERS / USER MANAGEMENT
 // ============================================================
 async function loadDrivers() {
-  if (!_supabase) return;
-  const el = document.getElementById('drivers-tbody');
+  const el = document.getElementById('users-list-body');
   if (!el) return;
-  el.textContent = 'Loading...';
+  el.innerHTML = '<div style="padding:20px;color:var(--text3)">Loading...</div>';
 
-  const { data, error } = await _supabase
-    .from('user_profiles')
-    .select('id, role, created_at')
-    .eq('role', 'driver');
+  try {
+    const res = await fetch('/api/admin/users/list');
+    if (!res.ok) throw new Error('Failed to load users');
+    const { users } = await res.json();
 
-  if (error || !data || data.length === 0) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:13px">No drivers added yet. Click "+ Add Driver" above for instructions.</p>';
-    return;
+    if (!users || users.length === 0) {
+      el.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">No users found.</div>';
+      return;
+    }
+
+    const roleColor = { admin: 'var(--red)', driver: 'var(--accent)', unknown: 'var(--text3)' };
+    el.innerHTML = users.map(u => {
+      const initials = (u.name || u.email || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const lastSeen = u.last_sign_in ? new Date(u.last_sign_in).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : 'Never';
+      const joined   = u.created_at  ? new Date(u.created_at).toLocaleDateString('en-AU',  {day:'numeric',month:'short',year:'numeric'}) : '—';
+      return `
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border)">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text2);flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.name || '—'}</div>
+            <div style="font-size:12px;color:var(--text3)">${u.email}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Joined ${joined} · Last login ${lastSeen}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:${roleColor[u.role]||'var(--text3)'};background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px">${u.role}</span>
+            <div style="position:relative">
+              <button class="btn btn-sm btn-ghost" onclick="toggleUserMenu('${u.id}')" style="padding:4px 8px;font-size:11px">⋯</button>
+              <div id="menu-${u.id}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;min-width:160px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
+                <div style="padding:4px 0">
+                  <div onclick="sendPasswordReset('${u.id}','${u.email}')" style="padding:8px 14px;font-size:13px;cursor:pointer;color:var(--text2)" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">Send password reset</div>
+                  <div onclick="changeRole('${u.id}','${u.role}')" style="padding:8px 14px;font-size:13px;cursor:pointer;color:var(--text2)" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">Change role</div>
+                  <div style="border-top:1px solid var(--border);margin:4px 0"></div>
+                  <div onclick="removeUser('${u.id}','${u.email}')" style="padding:8px 14px;font-size:13px;cursor:pointer;color:var(--red)" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">Remove user</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">Error loading users: ${e.message}</div>`;
   }
+}
 
-  el.innerHTML = data.map(d => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--text2)">D</div>
-        <div>
-          <div style="font-size:13px;font-weight:600">Driver</div>
-          <div style="font-size:11px;color:var(--text3)">ID: ${d.id.slice(0,8)}…</div>
-        </div>
-      </div>
-      <span style="font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;color:var(--text2)">Active</span>
-    </div>
-  `).join('');
+function toggleUserMenu(id) {
+  document.querySelectorAll('[id^="menu-"]').forEach(m => {
+    if (m.id !== 'menu-' + id) m.style.display = 'none';
+  });
+  const m = document.getElementById('menu-' + id);
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[id^="menu-"]') && !e.target.closest('.btn')) {
+    document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+  }
+});
+
+async function inviteUser() {
+  const name  = document.getElementById('new-user-name').value.trim();
+  const email = document.getElementById('new-user-email').value.trim();
+  const pass  = document.getElementById('new-user-pass').value.trim();
+  const role  = document.getElementById('new-user-role').value;
+  const msgEl = document.getElementById('invite-msg');
+  const btn   = document.getElementById('invite-btn');
+
+  if (!email) { showInviteMsg('Email is required.', 'error'); return; }
+  if (!pass || pass.length < 6) { showInviteMsg('Password must be at least 6 characters.', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  const res = await fetch('/api/admin/users/invite', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, name, password: pass, role }),
+  });
+  const data = await res.json();
+
+  btn.disabled = false;
+  btn.textContent = '+ Add User';
+
+  if (!res.ok) { showInviteMsg(data.error || 'Failed to add user.', 'error'); return; }
+
+  showInviteMsg(`${role === 'driver' ? 'Driver' : 'Admin'} account created for ${email}. They can now log in.`, 'success');
+  document.getElementById('new-user-name').value  = '';
+  document.getElementById('new-user-email').value = '';
+  document.getElementById('new-user-pass').value  = '';
+  loadDrivers();
+}
+
+function showInviteMsg(text, type) {
+  const el = document.getElementById('invite-msg');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.background = type === 'error' ? 'rgba(224,82,82,0.1)' : 'rgba(26,122,74,0.1)';
+  el.style.color = type === 'error' ? 'var(--red)' : '#1A7A4A';
+  el.style.border = `1px solid ${type === 'error' ? 'rgba(224,82,82,0.3)' : 'rgba(26,122,74,0.3)'}`;
+}
+
+async function sendPasswordReset(id, email) {
+  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+  const res = await fetch(`/api/admin/users/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'reset_password' }),
+  });
+  if (res.ok) { showToast(`Password reset email sent to ${email}`, 'success'); }
+  else { showToast('Failed to send reset email', 'error'); }
+}
+
+async function changeRole(id, currentRole) {
+  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+  const newRole = currentRole === 'driver' ? 'admin' : 'driver';
+  if (!confirm(`Change this user's role to ${newRole}?`)) return;
+  const res = await fetch(`/api/admin/users/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: newRole }),
+  });
+  if (res.ok) { showToast(`Role changed to ${newRole}`, 'success'); loadDrivers(); }
+  else { showToast('Failed to change role', 'error'); }
+}
+
+async function removeUser(id, email) {
+  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+  if (!confirm(`Remove ${email}? They will lose access immediately.`)) return;
+  const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+  if (res.ok) { showToast(`${email} removed`, 'success'); loadDrivers(); }
+  else { showToast('Failed to remove user', 'error'); }
 }
 
 // ============================================================

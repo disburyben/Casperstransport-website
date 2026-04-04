@@ -157,7 +157,7 @@ window.forgotPassword = async function(e) {
     return;
   }
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.top.location.origin + '/admin/login',
+    redirectTo: window.top.location.origin + '/admin/reset-password',
   });
   if (error) { showErr(error.message); return; }
   msg.style.display = 'block';
