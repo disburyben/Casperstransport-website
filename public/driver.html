@@ -13,6 +13,7 @@
   --bg:#0F0F0E;--bg2:#181817;--bg3:#222220;--bg4:#2C2C29;
   --bd:#333330;--bd2:#444440;
   --text:#F0EFE8;--text2:#9E9D95;--text3:#5C5C58;
+  --accent:#4FC1DB;--accent2:#409EB3;--accentbg:rgba(79,193,219,0.12);--accentbdr:rgba(79,193,219,0.3);
   --red:#4FC1DB;--red2:#409EB3;--redbg:rgba(79,193,219,0.12);--redbdr:rgba(79,193,219,0.3);
   --green:#2E9E5B;--greenbg:rgba(46,158,91,0.15);
   --amber:#D4880A;--amberbg:rgba(212,136,10,0.15);
@@ -23,29 +24,41 @@ html,body{height:100%;background:var(--bg);overflow:hidden}
 body{font-family:var(--font-b);font-size:15px;color:var(--text);max-width:480px;margin:0 auto}
 
 .topbar{
-  position:sticky;top:0;z-index:20;background:var(--bg2);border-bottom:1px solid var(--bd);
-  padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:20;
+  background:var(--bg2);
+  border-bottom:1px solid var(--bd);
+  box-shadow:0 1px 0 rgba(79,193,219,0.15);
+  padding:13px 18px 12px;display:flex;align-items:center;justify-content:space-between;
 }
 .topbar-logo{font-family:var(--font-d);font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
-.topbar-logo span{color:var(--red)}
+.topbar-logo span{color:var(--accent)}
 .driver-chip{
   display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--bd);
   border-radius:20px;padding:5px 10px 5px 6px;font-size:12px;font-weight:600;color:var(--text2);
 }
 .driver-avatar{
-  width:22px;height:22px;border-radius:50%;background:var(--redbg);border:1px solid var(--redbdr);
-  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--red);
+  width:22px;height:22px;border-radius:50%;background:var(--accentbg);border:1px solid var(--accentbdr);
+  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);
 }
-.scroll-area{height:calc(100vh - 52px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:32px}
-.date-strip{padding:16px 18px 0}
-.date-label{font-family:var(--font-d);font-size:28px;font-weight:800;text-transform:uppercase;letter-spacing:0.02em;line-height:1}
-.date-sub{font-size:13px;color:var(--text3);margin-top:3px}
-.day-summary{display:flex;gap:8px;padding:14px 18px 16px;overflow-x:auto;scrollbar-width:none}
-.day-summary::-webkit-scrollbar{display:none}
-.summary-chip{flex-shrink:0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px;min-width:88px}
-.summary-chip-val{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--text);line-height:1}
-.summary-chip-lbl{font-size:11px;color:var(--text3);margin-top:2px;font-weight:600}
-.section-hd{padding:4px 18px 10px}
+.scroll-area{height:calc(100vh - 52px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:40px}
+.date-strip{padding:20px 18px 4px}
+.date-label{font-family:var(--font-d);font-size:32px;font-weight:800;text-transform:uppercase;letter-spacing:0.02em;line-height:1;color:var(--text)}
+.date-sub{font-size:13px;color:var(--text3);margin-top:4px}
+
+/* ── STAT CARDS ── */
+.day-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:16px 18px 20px}
+.summary-chip{
+  background:var(--bg2);border:1px solid var(--bd);border-radius:10px;
+  padding:12px 10px 10px;display:flex;flex-direction:column;gap:2px;
+}
+.summary-chip-val{font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--text);line-height:1}
+.summary-chip-lbl{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:1px}
+.summary-chip.accent-chip{border-color:var(--accentbdr);background:var(--accentbg)}
+.summary-chip.accent-chip .summary-chip-val{color:var(--accent)}
+.summary-chip.green-chip{border-color:rgba(46,158,91,0.3);background:var(--greenbg)}
+.summary-chip.green-chip .summary-chip-val{color:var(--green)}
+
+.section-hd{padding:0 18px 10px}
 .section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--text3)}
 .job-list{padding:0 12px;display:flex;flex-direction:column;gap:10px}
 .job-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;transition:border-color 0.15s}
@@ -125,12 +138,30 @@ body{font-family:var(--font-b);font-size:15px;color:var(--text);max-width:480px;
 .completed-divider-line{flex:1;height:1px;background:var(--bd)}
 .completed-divider-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);white-space:nowrap}
 
-.km-footer{margin:24px 12px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px}
-.km-footer-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:12px}
-.km-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--bd);color:var(--text2)}
+.km-footer{margin:24px 12px 8px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.km-footer-head{padding:12px 16px 10px;background:var(--bg3);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.km-footer-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3)}
+.km-footer-body{padding:4px 16px 12px}
+.km-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--bd);color:var(--text2)}
 .km-row:last-child{border-bottom:none}
-.km-row.total{font-weight:700;color:var(--text);font-size:14px;padding-top:8px;margin-top:4px}
+.km-row.total{font-weight:700;color:var(--text);font-size:14px;padding-top:10px;margin-top:2px}
 .km-row span:last-child{color:var(--text);font-weight:600}
+.km-row.total span:last-child{color:var(--accent)}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  margin:16px 12px;padding:40px 24px;
+  background:var(--bg2);border:1px solid var(--bd);border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;
+}
+.empty-state-icon{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--accentbg);border:1px solid var(--accentbdr);
+  display:flex;align-items:center;justify-content:center;
+}
+.empty-state-icon svg{width:26px;height:26px;stroke:var(--accent);fill:none;stroke-width:1.5}
+.empty-state-title{font-family:var(--font-d);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;color:var(--text)}
+.empty-state-sub{font-size:13px;color:var(--text3);line-height:1.6;max-width:240px}
 
 /* ════════════════════════════════
    SIGNATURE MODAL
@@ -223,7 +254,17 @@ body{font-family:var(--font-b);font-size:15px;color:var(--text);max-width:480px;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.success{border-color:var(--green);color:var(--green)}
-.toast.error{border-color:var(--red);color:var(--red)}
+.toast.error{border-color:var(--accent);color:var(--accent)}
+
+/* ── SKELETON LOADING ── */
+@keyframes shimmer{0%{opacity:0.4}50%{opacity:0.8}100%{opacity:0.4}}
+.skeleton{background:var(--bg3);border-radius:6px;animation:shimmer 1.4s ease-in-out infinite}
+.skel-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.skel-row{display:flex;gap:10px;align-items:center}
+.skel-circle{width:34px;height:34px;border-radius:50%;flex-shrink:0}
+.skel-line{height:12px}
+.skel-line.wide{width:60%}
+.skel-line.narrow{width:35%}
 </style>
 </head>
 <body>
@@ -247,12 +288,12 @@ body{font-family:var(--font-b);font-size:15px;color:var(--text);max-width:480px;
     <div class="date-sub" id="date-sub"></div>
   </div>
   <div class="day-summary">
-    <div class="summary-chip"><div class="summary-chip-val" id="chip-jobs">3</div><div class="summary-chip-lbl">Jobs today</div></div>
-    <div class="summary-chip"><div class="summary-chip-val" id="chip-km">942</div><div class="summary-chip-lbl">Total km</div></div>
-    <div class="summary-chip"><div class="summary-chip-val" id="chip-bikes">3</div><div class="summary-chip-lbl">Bikes</div></div>
-    <div class="summary-chip"><div class="summary-chip-val" id="chip-done" style="color:var(--text3)">0</div><div class="summary-chip-lbl">Completed</div></div>
+    <div class="summary-chip accent-chip"><div class="summary-chip-val" id="chip-jobs">—</div><div class="summary-chip-lbl">Jobs</div></div>
+    <div class="summary-chip"><div class="summary-chip-val" id="chip-km">—</div><div class="summary-chip-lbl">km</div></div>
+    <div class="summary-chip"><div class="summary-chip-val" id="chip-bikes">—</div><div class="summary-chip-lbl">Bikes</div></div>
+    <div class="summary-chip" id="chip-done-wrap"><div class="summary-chip-val" id="chip-done">0</div><div class="summary-chip-lbl">Done</div></div>
   </div>
-  <div class="section-hd"><div class="section-title">Today's Run</div></div>
+  <div class="section-hd" id="run-hd"><div class="section-title">Today's Run</div></div>
   <div class="job-list" id="job-list"></div>
   <div class="km-footer" id="km-footer"></div>
 </div>
@@ -394,7 +435,15 @@ async function loadTodayJobs() {
 function showDriverLoading(loading) {
   const list = document.getElementById('job-list');
   if (loading && list) {
-    list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-size:13px;">Loading today\'s jobs...</div>';
+    list.innerHTML = `
+      <div class="skel-card">
+        <div class="skel-row"><div class="skeleton skel-circle"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="skeleton skel-line wide"></div><div class="skeleton skel-line narrow"></div></div></div>
+        <div class="skeleton skel-line" style="width:100%;height:10px"></div>
+        <div class="skeleton skel-line" style="width:80%;height:10px"></div>
+      </div>
+      <div class="skel-card" style="opacity:0.6">
+        <div class="skel-row"><div class="skeleton skel-circle"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="skeleton skel-line wide"></div><div class="skeleton skel-line narrow"></div></div></div>
+      </div>`;
   }
 }
 
@@ -402,14 +451,33 @@ function showDriverLoading(loading) {
 function render() {
   const today = new Date();
   document.getElementById('date-label').textContent = today.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
-  const done = Object.values(state).filter(s=>s.status==='completed').length;
-  const km   = JOBS.reduce((a,j)=>a+j.distance_km,0);
+  const done   = Object.values(state).filter(s=>s.status==='completed').length;
+  const km     = JOBS.reduce((a,j)=>a+j.distance_km,0);
+  const bikes  = JOBS.reduce((a,j)=>a+j.bikes.length,0);
+
   document.getElementById('chip-jobs').textContent  = JOBS.length;
-  document.getElementById('chip-km').textContent    = km;
-  document.getElementById('chip-bikes').textContent = JOBS.reduce((a,j)=>a+j.bikes.length,0);
+  document.getElementById('chip-km').textContent    = km || 0;
+  document.getElementById('chip-bikes').textContent = bikes;
   document.getElementById('chip-done').textContent  = done;
-  document.getElementById('chip-done').style.color  = done>0?'var(--green)':'var(--text3)';
-  document.getElementById('date-sub').textContent   = `${JOBS.length} jobs today · ${done} completed`;
+  document.getElementById('date-sub').textContent   = `${JOBS.length} job${JOBS.length!==1?'s':''} today · ${done} completed`;
+
+  // Highlight done chip when progress made
+  const doneWrap = document.getElementById('chip-done-wrap');
+  doneWrap.className = 'summary-chip' + (done>0 && done===JOBS.length ? ' green-chip' : done>0 ? ' accent-chip' : '');
+
+  const jobList = document.getElementById('job-list');
+  if (JOBS.length === 0) {
+    jobList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        </div>
+        <div class="empty-state-title">No jobs today</div>
+        <div class="empty-state-sub">You're all clear. Check back later or contact dispatch if you're expecting a run.</div>
+      </div>`;
+    document.getElementById('km-footer').innerHTML = '';
+    return;
+  }
 
   const active = JOBS.filter(j=>state[j.id].status!=='completed');
   const compl  = JOBS.filter(j=>state[j.id].status==='completed');
@@ -419,14 +487,17 @@ function render() {
     html += `</div><div class="completed-divider"><div class="completed-divider-line"></div><div class="completed-divider-label">Completed (${compl.length})</div><div class="completed-divider-line"></div></div><div class="job-list">`;
     compl.forEach(j => { html += card(j, false, true); });
   }
-  document.getElementById('job-list').innerHTML = html;
+  jobList.innerHTML = html;
 
   document.getElementById('km-footer').innerHTML = `
-    <div class="km-footer-title">Today's Distance</div>
-    <div class="km-row"><span>Roseworthy → first pickup</span><span>~28 km</span></div>
-    <div class="km-row"><span>Loaded runs</span><span>${km} km</span></div>
-    <div class="km-row"><span>Return (est.)</span><span>~50 km</span></div>
-    <div class="km-row total"><span>Estimated total</span><span>${km+78} km</span></div>`;
+    <div class="km-footer-head">
+      <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="var(--text3)" stroke-width="1.8"><circle cx="7.5" cy="6" r="2.5"/><path d="M7.5 1C4.5 1 2 3.5 2 6.5c0 4 5.5 8.5 5.5 8.5S13 10.5 13 6.5C13 3.5 10.5 1 7.5 1z"/></svg>
+      <div class="km-footer-title">Today's Distance</div>
+    </div>
+    <div class="km-footer-body">
+      <div class="km-row"><span>Loaded job runs</span><span>${km} km</span></div>
+      <div class="km-row total"><span>Total loaded km</span><span>${km} km</span></div>
+    </div>`;
 }
 
 function card(job, isNext, isDone) {
