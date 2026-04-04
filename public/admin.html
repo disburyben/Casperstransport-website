@@ -557,7 +557,7 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
       <div class="page-title" id="page-title">Overview</div>
       <div class="topbar-actions">
         <span style="font-size:12px;color:var(--text3)" id="current-date"></span>
-        <button class="btn btn-primary btn-sm" onclick="showToast('Manual booking creation coming in Phase 3','success')">+ New Booking</button>
+        <button class="btn btn-primary btn-sm" onclick="openNewBooking()">+ New Booking</button>
       </div>
     </div>
 
@@ -969,6 +969,127 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
 
 <div class="toast" id="toast"></div>
 
+<!-- ══════════════════════════════════════
+     NEW BOOKING MODAL
+══════════════════════════════════════ -->
+<div class="nb-overlay" id="nb-overlay" onclick="nbOverlayClick(event)">
+  <div class="nb-sheet">
+    <div class="nb-header">
+      <div class="nb-title">New Booking</div>
+      <div class="nb-close" onclick="closeNewBooking()">
+        <svg viewBox="0 0 13 13"><line x1="1.5" y1="1.5" x2="11.5" y2="11.5"/><line x1="11.5" y1="1.5" x2="1.5" y2="11.5"/></svg>
+      </div>
+    </div>
+    <div class="nb-body">
+      <div class="nb-err" id="nb-err"></div>
+
+      <!-- Customer -->
+      <div class="nb-section">
+        <div class="nb-section-title">Customer</div>
+        <div class="nb-row">
+          <div>
+            <div class="nb-label">Full name *</div>
+            <input class="nb-input" id="nb-name" type="text" placeholder="John Smith">
+          </div>
+        </div>
+        <div class="nb-row cols-2">
+          <div>
+            <div class="nb-label">Email *</div>
+            <input class="nb-input" id="nb-email" type="email" placeholder="john@example.com">
+          </div>
+          <div>
+            <div class="nb-label">Phone</div>
+            <input class="nb-input" id="nb-phone" type="tel" placeholder="04XX XXX XXX">
+          </div>
+        </div>
+      </div>
+
+      <!-- Route -->
+      <div class="nb-section">
+        <div class="nb-section-title">Route</div>
+        <div class="nb-row">
+          <div>
+            <div class="nb-label">Pickup address *</div>
+            <input class="nb-input" id="nb-pickup" type="text" placeholder="123 Main St, Adelaide SA 5000">
+          </div>
+        </div>
+        <div class="nb-row">
+          <div>
+            <div class="nb-label">Dropoff address *</div>
+            <input class="nb-input" id="nb-dropoff" type="text" placeholder="456 Beach Rd, Glenelg SA 5045">
+          </div>
+        </div>
+        <div class="nb-row cols-2">
+          <div>
+            <div class="nb-label">Pickup date *</div>
+            <input class="nb-input" id="nb-date" type="date">
+          </div>
+          <div>
+            <div class="nb-label">Pickup time</div>
+            <input class="nb-input" id="nb-time" type="time">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bikes -->
+      <div class="nb-section">
+        <div class="nb-section-title">Bike(s)</div>
+        <div id="nb-bikes-list"></div>
+        <button class="nb-add-bike" onclick="nbAddBike()">+ Add another bike</button>
+      </div>
+
+      <!-- Pricing & Payment -->
+      <div class="nb-section">
+        <div class="nb-section-title">Pricing & Payment</div>
+        <div class="nb-row cols-2">
+          <div>
+            <div class="nb-label">Total (A$)</div>
+            <input class="nb-input" id="nb-total" type="number" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div>
+            <div class="nb-label">Payment method</div>
+            <select class="nb-input" id="nb-payment">
+              <option value="eft">EFT / Bank transfer</option>
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+            </select>
+          </div>
+        </div>
+        <div class="nb-row cols-2">
+          <div>
+            <div class="nb-label">Status</div>
+            <select class="nb-input" id="nb-status">
+              <option value="confirmed">Confirmed</option>
+              <option value="pending_quote">Pending Quote</option>
+              <option value="quote_sent">Quote Sent</option>
+            </select>
+          </div>
+          <div>
+            <div class="nb-label">Distance (km)</div>
+            <input class="nb-input" id="nb-km" type="number" min="0" step="1" placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="nb-section">
+        <div class="nb-section-title">Notes</div>
+        <div class="nb-row">
+          <div>
+            <div class="nb-label">Customer notes</div>
+            <textarea class="nb-input" id="nb-notes" rows="3" placeholder="Access instructions, special requirements..." style="resize:vertical"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /nb-body -->
+    <div class="nb-footer">
+      <button class="nb-cancel" onclick="closeNewBooking()">Cancel</button>
+      <button class="nb-submit" id="nb-submit" onclick="submitNewBooking()">Create Booking</button>
+    </div>
+  </div>
+</div>
+
 <style>
 .rc-input{
   background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
@@ -978,6 +1099,92 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
 }
 .rc-input::-webkit-outer-spin-button,.rc-input::-webkit-inner-spin-button{-webkit-appearance:none}
 .rc-input:focus{border-color:var(--border2)}
+
+/* ── NEW BOOKING MODAL ── */
+.nb-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.6);backdrop-filter:blur(2px);
+  display:flex;align-items:flex-start;justify-content:flex-end;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.nb-overlay.open{opacity:1;pointer-events:all}
+.nb-sheet{
+  width:520px;max-width:100vw;height:100vh;overflow-y:auto;
+  background:var(--bg2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.32,.72,0,1);
+}
+.nb-overlay.open .nb-sheet{transform:translateX(0)}
+.nb-header{
+  padding:20px 24px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  position:sticky;top:0;background:var(--bg2);z-index:1;
+}
+.nb-title{font-family:var(--font-disp);font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+.nb-close{
+  width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.nb-close svg{stroke:var(--text2);fill:none;stroke-width:2;stroke-linecap:round;width:13px;height:13px}
+.nb-body{padding:24px;flex:1}
+.nb-section{margin-bottom:24px}
+.nb-section-title{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--text3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.nb-row{display:grid;gap:12px;margin-bottom:12px}
+.nb-row.cols-2{grid-template-columns:1fr 1fr}
+.nb-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.nb-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text2);margin-bottom:5px}
+.nb-input{
+  display:block;width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:13px;
+  padding:9px 11px;outline:none;transition:border-color .15s;
+}
+.nb-input:focus{border-color:var(--accent)}
+.nb-input::placeholder{color:var(--text3)}
+select.nb-input{appearance:none}
+.bike-row{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:12px;margin-bottom:8px;position:relative;
+}
+.bike-row-num{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--text3);margin-bottom:8px;
+}
+.bike-remove{
+  position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;
+  color:var(--text3);font-size:18px;line-height:1;padding:0 4px;
+}
+.bike-remove:hover{color:var(--red)}
+.nb-add-bike{
+  width:100%;padding:9px;background:none;border:1px dashed var(--border);border-radius:8px;
+  color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;
+  transition:border-color .15s,color .15s;
+}
+.nb-add-bike:hover{border-color:var(--accent);color:var(--accent)}
+.nb-footer{
+  padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;
+  position:sticky;bottom:0;background:var(--bg2);z-index:1;
+}
+.nb-submit{
+  flex:1;padding:12px;background:var(--accent);border:none;border-radius:var(--radius);
+  color:#0F0F0E;font-family:var(--font-disp);font-size:15px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;transition:background .15s;
+}
+.nb-submit:hover{background:var(--accent2)}
+.nb-submit:disabled{opacity:.5;cursor:not-allowed}
+.nb-cancel{
+  padding:12px 20px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius);color:var(--text2);font-family:var(--font-body);font-size:13px;
+  font-weight:600;cursor:pointer;
+}
+.nb-err{
+  display:none;background:rgba(224,82,82,0.1);border:1px solid rgba(224,82,82,0.3);
+  border-radius:var(--radius);padding:10px 12px;font-size:12px;color:#E05252;
+  margin-bottom:16px;
+}
+.nb-err.show{display:block}
 </style>
 
 <script>
@@ -1772,6 +1979,173 @@ async function removeUser(id, email) {
   const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
   if (res.ok) { showToast(`${email} removed`, 'success'); loadDrivers(); }
   else { showToast('Failed to remove user', 'error'); }
+}
+
+// ============================================================
+// NEW BOOKING MODAL
+// ============================================================
+let nbBikeCount = 0;
+
+function openNewBooking() {
+  nbBikeCount = 0;
+  document.getElementById('nb-bikes-list').innerHTML = '';
+  document.getElementById('nb-err').classList.remove('show');
+  // Reset all fields
+  ['nb-name','nb-email','nb-phone','nb-pickup','nb-dropoff','nb-time','nb-notes','nb-total','nb-km'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('nb-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('nb-status').value = 'confirmed';
+  document.getElementById('nb-payment').value = 'eft';
+  document.getElementById('nb-submit').disabled = false;
+  document.getElementById('nb-submit').textContent = 'Create Booking';
+  nbAddBike(); // start with one bike row
+  document.getElementById('nb-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNewBooking() {
+  document.getElementById('nb-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function nbOverlayClick(e) {
+  if (e.target === document.getElementById('nb-overlay')) closeNewBooking();
+}
+
+function nbAddBike() {
+  nbBikeCount++;
+  const i = nbBikeCount;
+  const div = document.createElement('div');
+  div.className = 'bike-row';
+  div.id = `nb-bike-${i}`;
+  div.innerHTML = `
+    <div class="bike-row-num">Bike ${i}</div>
+    ${i > 1 ? `<button class="bike-remove" onclick="document.getElementById('nb-bike-${i}').remove()" title="Remove">×</button>` : ''}
+    <div class="nb-row cols-3">
+      <div>
+        <div class="nb-label">Make</div>
+        <input class="nb-input" name="bike-make" placeholder="Honda">
+      </div>
+      <div>
+        <div class="nb-label">Model</div>
+        <input class="nb-input" name="bike-model" placeholder="CBR600">
+      </div>
+      <div>
+        <div class="nb-label">Year</div>
+        <input class="nb-input" name="bike-year" type="number" placeholder="2020" min="1950" max="2030">
+      </div>
+    </div>
+    <div class="nb-row cols-2">
+      <div>
+        <div class="nb-label">Type</div>
+        <select class="nb-input" name="bike-type">
+          <option value="road_motorcycle">Road Motorcycle</option>
+          <option value="dirt_motorcycle">Dirt / Off-road</option>
+          <option value="cruiser">Cruiser</option>
+          <option value="sports">Sports</option>
+          <option value="scooter">Scooter</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div>
+        <div class="nb-label">Condition</div>
+        <select class="nb-input" name="bike-condition">
+          <option value="running_rideable">Running / Rideable</option>
+          <option value="non_runner">Non-runner</option>
+          <option value="broken_seized">Broken / Seized</option>
+          <option value="custom_part_built">Custom / Part-built</option>
+          <option value="stripped_pieces">Stripped / Pieces</option>
+        </select>
+      </div>
+    </div>`;
+  document.getElementById('nb-bikes-list').appendChild(div);
+}
+
+async function submitNewBooking() {
+  const err = document.getElementById('nb-err');
+  err.classList.remove('show');
+
+  const name    = document.getElementById('nb-name').value.trim();
+  const email   = document.getElementById('nb-email').value.trim();
+  const phone   = document.getElementById('nb-phone').value.trim();
+  const pickup  = document.getElementById('nb-pickup').value.trim();
+  const dropoff = document.getElementById('nb-dropoff').value.trim();
+  const date    = document.getElementById('nb-date').value;
+
+  if (!name || !email || !pickup || !dropoff || !date) {
+    err.textContent = 'Please fill in all required fields (name, email, pickup, dropoff, date).';
+    err.classList.add('show');
+    return;
+  }
+
+  // Collect bikes from DOM
+  const bikeRows = document.querySelectorAll('#nb-bikes-list .bike-row');
+  const bikes = Array.from(bikeRows).map(row => ({
+    make:      row.querySelector('[name="bike-make"]').value.trim() || null,
+    model:     row.querySelector('[name="bike-model"]').value.trim() || null,
+    year:      row.querySelector('[name="bike-year"]').value || null,
+    type:      row.querySelector('[name="bike-type"]').value,
+    condition: row.querySelector('[name="bike-condition"]').value,
+  }));
+
+  const totalAud = parseFloat(document.getElementById('nb-total').value) || null;
+  const km       = parseFloat(document.getElementById('nb-km').value) || null;
+
+  const btn = document.getElementById('nb-submit');
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  try {
+    const res = await fetch('/api/bookings/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name, email, phone: phone || null,
+        pickup_address:  pickup,
+        dropoff_address: dropoff,
+        pickup_date:     date,
+        pickup_time:     document.getElementById('nb-time').value || null,
+        payment_method:  document.getElementById('nb-payment').value,
+        notes:           document.getElementById('nb-notes').value.trim() || null,
+        bikes,
+        quote: totalAud ? {
+          total_aud:  totalAud,
+          base_rate:  0,
+          kmLoaded:   km || 0,
+          kmReturn:   0,
+        } : null,
+        // Override status to admin-selected value after creation
+        _admin_status: document.getElementById('nb-status').value,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create booking');
+
+    // If status is not pending_quote (the default), patch it
+    const desiredStatus = document.getElementById('nb-status').value;
+    if (desiredStatus !== 'pending_quote' && data.bookingId) {
+      await fetch(`/api/driver/jobs/${data.bookingId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: desiredStatus }),
+      });
+    }
+
+    closeNewBooking();
+    showToast('Booking created successfully', 'success');
+    await loadBookings();
+    // Navigate to bookings list
+    showView('bookings', document.querySelectorAll('.nav-item')[1]);
+
+  } catch (e) {
+    err.textContent = e.message;
+    err.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Create Booking';
+  }
 }
 
 // ============================================================
