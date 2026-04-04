@@ -39,6 +39,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ sent: 0, message: 'No invoices pending' });
   }
 
+  // Load business details from rate_card (admin can edit these in settings)
+  const { data: rc } = await supabase.from('rate_card').select('abn, bank_name, bank_bsb, bank_account').limit(1).single();
+  const bizDetails = {
+    abn:        rc?.abn        || null,
+    bankName:   rc?.bank_name  || null,
+    bankBsb:    rc?.bank_bsb   || null,
+    bankAccount:rc?.bank_account || null,
+  };
+
   const results = [];
 
   for (const booking of bookings) {
@@ -62,7 +71,7 @@ export async function POST(req: NextRequest) {
         to:      [customer.email],
         cc:      [ADMIN_EMAIL],
         subject: `Invoice ${invoiceNum} — Caspers Transport`,
-        html:    buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoiceDate }),
+        html:    buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoiceDate, bizDetails }),
       });
 
       // Update customer lifetime stats
@@ -107,7 +116,7 @@ export async function POST(req: NextRequest) {
 // ============================================================
 // INVOICE EMAIL TEMPLATE
 // ============================================================
-function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoiceDate }: any) {
+function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoiceDate, bizDetails }: any) {
   const bikeRows = bikes.map((b: any, i: number) => {
     const name = `${b.make || ''} ${b.model || ''} ${b.year || ''}`.trim() ||
       `${(b.bike_type || '').replace(/_/g, ' ')} (Bike ${i + 1})`;
@@ -259,10 +268,10 @@ function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoic
         <div style="background:#F5F5F4;border-radius:6px;padding:16px 18px;margin-bottom:20px;">
           <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#898880;margin:0 0 10px;">Payment details</p>
           <table style="font-size:13px;border-collapse:collapse;">
-            <tr><td style="padding:3px 0;color:#666;width:120px;">Bank</td><td style="font-weight:500;">${process.env.BANK_NAME || 'Contact us for bank details'}</td></tr>
+            <tr><td style="padding:3px 0;color:#666;width:120px;">Bank</td><td style="font-weight:500;">${bizDetails.bankName || 'Contact us for bank details'}</td></tr>
             <tr><td style="padding:3px 0;color:#666;">Account name</td><td style="font-weight:500;">Caspers Transport</td></tr>
-            <tr><td style="padding:3px 0;color:#666;">BSB</td><td style="font-weight:500;">${process.env.BANK_BSB || '—'}</td></tr>
-            <tr><td style="padding:3px 0;color:#666;">Account no.</td><td style="font-weight:500;">${process.env.BANK_ACCOUNT || '—'}</td></tr>
+            <tr><td style="padding:3px 0;color:#666;">BSB</td><td style="font-weight:500;">${bizDetails.bankBsb || '—'}</td></tr>
+            <tr><td style="padding:3px 0;color:#666;">Account no.</td><td style="font-weight:500;">${bizDetails.bankAccount || '—'}</td></tr>
             <tr><td style="padding:3px 0;color:#666;">Reference</td><td style="font-weight:500;">${invoiceNum}</td></tr>
           </table>
         </div>` : ''}
@@ -270,7 +279,7 @@ function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoic
         <!-- ABN / Business info -->
         <div style="border-top:1px solid #E8E7E5;padding-top:16px;font-size:12px;color:#898880;line-height:1.7;">
           <strong style="color:#0D0D0D;">Caspers Transport</strong><br>
-          ${process.env.CASPERS_ABN ? `ABN: ${process.env.CASPERS_ABN}<br>` : ''}
+          ${bizDetails.abn ? `ABN: ${bizDetails.abn}<br>` : ''}
           Roseworthy SA 5371<br>
           <a href="mailto:admin@casperstransport.com.au" style="color:#4FC1DB;">admin@casperstransport.com.au</a>
         </div>

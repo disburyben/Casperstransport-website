@@ -865,6 +865,33 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
             </div>
           </div>
 
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="detail-card-title">Business &amp; Payment Details</div>
+              <span style="font-size:11px;color:var(--text3)">Shown on invoices</span>
+            </div>
+            <div class="detail-card-body">
+              <div class="info-grid" style="gap:16px">
+                <div class="field-rc">
+                  <div class="info-label">ABN</div>
+                  <input type="text" class="rc-input" id="rc-abn" placeholder="e.g. 66 177 230 686" style="width:100%;font-size:13px">
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Bank name</div>
+                  <input type="text" class="rc-input" id="rc-bank-name" placeholder="e.g. Commonwealth Bank" style="width:100%;font-size:13px">
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">BSB</div>
+                  <input type="text" class="rc-input" id="rc-bank-bsb" placeholder="e.g. 062-000" style="width:100%;font-size:13px">
+                </div>
+                <div class="field-rc">
+                  <div class="info-label">Account number</div>
+                  <input type="text" class="rc-input" id="rc-bank-account" placeholder="e.g. 12345678" style="width:100%;font-size:13px">
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:12px;font-size:13px;color:var(--text2);line-height:1.6;">
           <strong style="color:var(--text);font-weight:600;">Service area:</strong> Metro and country South Australia only. Home base: Roseworthy SA 5371.<br>
           Jobs over 350 km from base are auto-flagged for admin review before quote is sent.
@@ -1052,6 +1079,10 @@ async function saveRateCard() {
     stripe_deposit_pct:      parseFloat(document.getElementById('rc-deposit').value),
     fuel_levy_active:        document.getElementById('rc-fuel-active').checked,
     fuel_levy_pct:           parseFloat(document.getElementById('rc-fuel-pct').value),
+    abn:                     document.getElementById('rc-abn').value.trim() || null,
+    bank_name:               document.getElementById('rc-bank-name').value.trim() || null,
+    bank_bsb:                document.getElementById('rc-bank-bsb').value.trim() || null,
+    bank_account:            document.getElementById('rc-bank-account').value.trim() || null,
     updated_at:              new Date().toISOString(),
   };
   const { error } = await _supabase.from('rate_card').update(payload).not('id', 'is', null);
@@ -1079,6 +1110,10 @@ async function loadRateCard() {
     toggleFuelLevy({checked: true});
   }
   document.getElementById('rc-fuel-pct').value    = data.fuel_levy_pct;
+  if (data.abn)          document.getElementById('rc-abn').value          = data.abn;
+  if (data.bank_name)    document.getElementById('rc-bank-name').value    = data.bank_name;
+  if (data.bank_bsb)     document.getElementById('rc-bank-bsb').value     = data.bank_bsb;
+  if (data.bank_account) document.getElementById('rc-bank-account').value = data.bank_account;
 }
 
 function showLoadingState(loading) {
