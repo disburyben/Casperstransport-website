@@ -631,14 +631,10 @@ window.addEventListener('resize',()=>{
 (async () => {
   if (!sessionStorage.getItem('caspers_driver_token')) {
     try {
-      const { createBrowserClient } = await import('https://esm.sh/@supabase/ssr@0.5.2');
-      const sb = createBrowserClient(
-        document.documentElement.dataset.supabaseUrl,
-        document.documentElement.dataset.supabaseAnon
-      );
-      const { data: { session } } = await sb.auth.getSession();
-      if (session?.access_token) {
-        sessionStorage.setItem('caspers_driver_token', session.access_token);
+      const res = await fetch('/api/driver/session');
+      if (res.ok) {
+        const { token } = await res.json();
+        if (token) sessionStorage.setItem('caspers_driver_token', token);
       }
     } catch(e) {}
   }

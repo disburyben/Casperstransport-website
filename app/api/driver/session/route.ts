@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
   // Return token so client can seed sessionStorage
   return NextResponse.json({
-    token: session.session.access_token,
+    token: session.access_token,
     user: {
       id: session.user.id,
       email: session.user.email,
