@@ -2,23 +2,19 @@
   "crons": [
     {
       "path": "/api/automation/reminders-24h",
-      "schedule": "30 8 * * *",
-      "comment": "24h reminder emails — fires daily at 6:00 PM ACST (08:30 UTC). Sends reminder to all confirmed bookings with pickup tomorrow."
+      "schedule": "30 8 * * *"
     },
     {
       "path": "/api/automation/reminders-2h",
-      "schedule": "0 6 * * *",
-      "comment": "2h SMS reminders — Hobby plan: runs once daily at 4PM ACST. Upgrade to Pro for every-30-min checks."
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/automation/invoices",
-      "schedule": "0 10 * * *",
-      "comment": "Post-job invoices — Hobby plan: runs once daily at 8PM ACST. Upgrade to Pro for every-15-min checks."
+      "schedule": "0 10 * * *"
     },
     {
       "path": "/api/automation/review-requests",
-      "schedule": "0 1 * * *",
-      "comment": "Review request emails — fires daily at 10:30 AM ACST (01:00 UTC). Targets completed jobs from 3 days ago."
+      "schedule": "0 1 * * *"
     }
   ]
 }
