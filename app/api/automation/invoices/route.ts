@@ -259,10 +259,10 @@ function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoic
         <div style="background:#F5F5F4;border-radius:6px;padding:16px 18px;margin-bottom:20px;">
           <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#898880;margin:0 0 10px;">Payment details</p>
           <table style="font-size:13px;border-collapse:collapse;">
-            <tr><td style="padding:3px 0;color:#666;width:120px;">Bank</td><td style="font-weight:500;">YOUR BANK NAME</td></tr>
+            <tr><td style="padding:3px 0;color:#666;width:120px;">Bank</td><td style="font-weight:500;">${process.env.BANK_NAME || 'Contact us for bank details'}</td></tr>
             <tr><td style="padding:3px 0;color:#666;">Account name</td><td style="font-weight:500;">Caspers Transport</td></tr>
-            <tr><td style="padding:3px 0;color:#666;">BSB</td><td style="font-weight:500;">XXX-XXX</td></tr>
-            <tr><td style="padding:3px 0;color:#666;">Account no.</td><td style="font-weight:500;">XXXXXXXXX</td></tr>
+            <tr><td style="padding:3px 0;color:#666;">BSB</td><td style="font-weight:500;">${process.env.BANK_BSB || '—'}</td></tr>
+            <tr><td style="padding:3px 0;color:#666;">Account no.</td><td style="font-weight:500;">${process.env.BANK_ACCOUNT || '—'}</td></tr>
             <tr><td style="padding:3px 0;color:#666;">Reference</td><td style="font-weight:500;">${invoiceNum}</td></tr>
           </table>
         </div>` : ''}
@@ -270,7 +270,7 @@ function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoic
         <!-- ABN / Business info -->
         <div style="border-top:1px solid #E8E7E5;padding-top:16px;font-size:12px;color:#898880;line-height:1.7;">
           <strong style="color:#0D0D0D;">Caspers Transport</strong><br>
-          ABN: XX XXX XXX XXX<br>
+          ${process.env.CASPERS_ABN ? `ABN: ${process.env.CASPERS_ABN}<br>` : ''}
           Roseworthy SA 5371<br>
           <a href="mailto:admin@casperstransport.com.au" style="color:#4FC1DB;">admin@casperstransport.com.au</a>
         </div>
@@ -279,3 +279,6 @@ function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoic
     </div>
   `;
 }
+
+// Vercel cron sends GET — alias to POST handler
+export { POST as GET };

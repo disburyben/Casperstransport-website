@@ -193,3 +193,6 @@ function formatTime(t: string): string {
   const hour   = h % 12 || 12;
   return `${hour}:${String(m).padStart(2, '0')} ${period}`;
 }
+
+// Vercel cron sends GET — alias to POST handler
+export { POST as GET };

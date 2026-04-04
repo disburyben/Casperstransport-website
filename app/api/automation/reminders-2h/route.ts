@@ -156,3 +156,6 @@ function formatAuMobile(phone: string): string | null {
   }
   return null;
 }
+
+// Vercel cron sends GET — alias to POST handler
+export { POST as GET };

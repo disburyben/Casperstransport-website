@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm Booking — Caspers Transport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Barlow', sans-serif; background: #F5F5F4; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: #fff; border-radius: 12px; max-width: 520px; width: 100%; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .card-header { background: #0D0D0D; padding: 24px 32px; }
+  .logo { font-size: 18px; font-weight: 700; color: white; letter-spacing: 0.06em; text-transform: uppercase; }
+  .logo span { color: #4FC1DB; }
+  .card-body { padding: 32px; }
+  .state { display: none; }
+  .state.active { display: block; }
+  .icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .icon-success { background: #EAF5EE; }
+  .icon-error { background: #FEE; }
+  .icon-loading { background: #EAF8FC; }
+  h2 { font-size: 22px; font-weight: 700; color: #0D0D0D; text-align: center; margin-bottom: 8px; }
+  .subtitle { font-size: 14px; color: #666; text-align: center; margin-bottom: 28px; line-height: 1.6; }
+  .detail-box { background: #F5F5F4; border-radius: 8px; padding: 18px; margin-bottom: 20px; font-size: 14px; }
+  .detail-row { display: flex; justify-content: space-between; padding: 5px 0; color: #666; }
+  .detail-row strong { color: #0D0D0D; font-weight: 600; }
+  .ref { background: #0D0D0D; color: #fff; border-radius: 6px; padding: 10px 16px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-align: center; margin-bottom: 20px; }
+  .ref span { color: #4FC1DB; }
+  .cta { display: block; background: #4FC1DB; color: #fff; text-align: center; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 15px; text-decoration: none; margin-bottom: 12px; }
+  .cta-ghost { display: block; color: #666; text-align: center; padding: 10px; font-size: 14px; text-decoration: none; }
+  .spinner { width: 40px; height: 40px; border: 3px solid #E8E7E5; border-top-color: #4FC1DB; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .next-steps { font-size: 13px; color: #666; line-height: 1.8; }
+  .next-steps li { margin-left: 16px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="logo">CASPERS <span>TRANSPORT</span></div>
+  </div>
+  <div class="card-body">
+
+    <!-- Loading state -->
+    <div class="state active" id="state-loading">
+      <div class="spinner"></div>
+      <h2>Confirming your booking...</h2>
+      <p class="subtitle">Just a moment while we lock this in.</p>
+    </div>
+
+    <!-- Success state -->
+    <div class="state" id="state-success">
+      <div class="icon icon-success">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1A7A4A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>Booking Confirmed</h2>
+      <p class="subtitle">Your transport is locked in. We'll be in touch the day before with your driver's details.</p>
+      <div class="ref">Reference: <span id="booking-ref">—</span></div>
+      <div class="detail-box" id="booking-details"></div>
+      <ul class="next-steps" style="margin-bottom:24px">
+        <li>You'll receive a reminder email 24 hours before pickup</li>
+        <li>Your driver will contact you 2 hours before arrival</li>
+        <li>Track your job status anytime at the link in your email</li>
+      </ul>
+      <a href="/" class="cta">Back to Caspers Transport →</a>
+      <a href="tel:0434271510" class="cta-ghost">Questions? Call 0434 271 510</a>
+    </div>
+
+    <!-- Already confirmed -->
+    <div class="state" id="state-already">
+      <div class="icon icon-success">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1A7A4A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>Already Confirmed</h2>
+      <p class="subtitle">This booking has already been confirmed. No action needed.</p>
+      <div class="ref">Reference: <span id="booking-ref-already">—</span></div>
+      <a href="/" class="cta">Back to Caspers Transport →</a>
+    </div>
+
+    <!-- Error state -->
+    <div class="state" id="state-error">
+      <div class="icon icon-error">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C0392B" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <h2>Something went wrong</h2>
+      <p class="subtitle" id="error-msg">We couldn't confirm your booking. Please call us directly and we'll sort it out.</p>
+      <a href="tel:0434271510" class="cta">Call 0434 271 510</a>
+      <a href="mailto:admin@casperstransport.com.au" class="cta-ghost">admin@casperstransport.com.au</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  function show(stateId) {
+    document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+    document.getElementById(stateId).classList.add('active');
+  }
+
+  if (!id) {
+    document.getElementById('error-msg').textContent = 'No booking ID found in this link. Please check your email and try again.';
+    show('state-error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/bookings/confirm?id=${encodeURIComponent(id)}`, { method: 'POST' });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 409) {
+        // Already confirmed
+        document.getElementById('booking-ref-already').textContent = id.slice(-8).toUpperCase();
+        show('state-already');
+        return;
+      }
+      throw new Error(data.error || 'Confirmation failed');
+    }
+
+    // Success
+    const shortRef = id.slice(-8).toUpperCase();
+    document.getElementById('booking-ref').textContent = shortRef;
+
+    if (data.booking) {
+      const b = data.booking;
+      const date = b.pickup_date ? new Date(b.pickup_date + 'T12:00:00').toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' }) : '—';
+      document.getElementById('booking-details').innerHTML = `
+        <div class="detail-row"><span>Pickup</span><strong>${b.pickup_address || '—'}</strong></div>
+        <div class="detail-row"><span>Dropoff</span><strong>${b.dropoff_address || '—'}</strong></div>
+        <div class="detail-row"><span>Date</span><strong>${date}</strong></div>
+        <div class="detail-row"><span>Payment</span><strong>${b.payment_method === 'stripe_deposit' ? 'Deposit paid' : 'Pay on day'}</strong></div>
+      `;
+    }
+
+    show('state-success');
+
+  } catch (err) {
+    document.getElementById('error-msg').textContent = err.message || 'Unexpected error. Please call us.';
+    show('state-error');
+  }
+})();
+</script>
+</body>
+</html>

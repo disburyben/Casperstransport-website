@@ -153,3 +153,6 @@ function buildReviewEmail({ customer, bikeStr, booking }: any) {
     </div>
   `;
 }
+
+// Vercel cron sends GET — alias to POST handler
+export { POST as GET };

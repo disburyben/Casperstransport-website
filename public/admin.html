@@ -530,6 +530,11 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
         Calendar
       </button>
 
+      <button class="nav-item" onclick="showView('drivers',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+        Drivers
+      </button>
+
       <div class="nav-section">Settings</div>
       <button class="nav-item" onclick="showView('ratecards',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M3.2 12.8l1.4-1.4M11.4 4.6l1.4-1.4"/></svg>
@@ -567,96 +572,38 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
         <div class="metrics">
           <div class="metric">
             <div class="metric-label">Today's Jobs</div>
-            <div class="metric-value">3</div>
-            <div class="metric-sub">2 confirmed · 1 in transit</div>
+            <div class="metric-value" id="m-today">—</div>
+            <div class="metric-sub" id="m-today-sub">Loading...</div>
           </div>
           <div class="metric">
             <div class="metric-label">This Week</div>
-            <div class="metric-value">11</div>
-            <div class="metric-sub"><span class="metric-up">↑ 2</span> vs last week</div>
+            <div class="metric-value" id="m-week">—</div>
+            <div class="metric-sub">bookings this week</div>
           </div>
           <div class="metric">
             <div class="metric-label">Revenue MTD</div>
-            <div class="metric-value">$6,840</div>
-            <div class="metric-sub"><span class="metric-up">↑ 14%</span> vs last month</div>
+            <div class="metric-value" id="m-revenue">—</div>
+            <div class="metric-sub">completed this month</div>
           </div>
           <div class="metric">
             <div class="metric-label">Needs Review</div>
-            <div class="metric-value" style="color:var(--amber)">2</div>
+            <div class="metric-value" id="m-review">—</div>
             <div class="metric-sub">Awaiting admin action</div>
           </div>
         </div>
 
         <!-- Needs review queue -->
-        <div class="section-hd">
-          <div class="section-title">Needs Review</div>
-        </div>
-        <div class="review-queue" style="margin-bottom:24px">
-          <div class="review-queue-header">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 1a6 6 0 100 12A6 6 0 007 1zm0 9a.75.75 0 110-1.5A.75.75 0 017 10zm.75-3.25a.75.75 0 01-1.5 0V4.5a.75.75 0 011.5 0v2.25z"/></svg>
-            2 bookings need your attention
-          </div>
-          <div class="review-item" onclick="openJobDetail('BK-0042')">
-            <div class="review-item-name">Dave Kowalski</div>
-            <div class="review-item-info">Norwood SA → Port Lincoln SA · Apr 8</div>
-            <div class="review-item-reason">Follow-up payment pending</div>
-          </div>
-          <div class="review-item" onclick="openJobDetail('BK-0039')">
-            <div class="review-item-name">Marcus Webb</div>
-            <div class="review-item-info">Unley SA → Ceduna SA · Apr 10</div>
-            <div class="review-item-reason">Long distance (780 km) — verify quote</div>
-          </div>
+        <div id="review-queue-wrap" style="margin-bottom:24px;display:none">
+          <div class="section-hd"><div class="section-title">Needs Review</div></div>
+          <div class="review-queue" id="review-queue-body"></div>
         </div>
 
         <!-- Today's jobs -->
         <div class="section-hd">
           <div class="section-title">Today's Jobs</div>
-          <button class="btn btn-sm btn-ghost" onclick="showView('bookings',document.querySelector('.nav-item:nth-child(3)'))">View all →</button>
+          <button class="btn btn-sm btn-ghost" onclick="showView('bookings',document.querySelectorAll('.nav-item')[1])">View all →</button>
         </div>
-        <div class="today-grid">
-          <div class="job-card status-in_transit" onclick="openJobDetail('BK-0044')">
-            <div class="job-card-top">
-              <div>
-                <div class="job-name">Terry McLaren</div>
-                <div class="job-time">Departed 7:30 AM</div>
-              </div>
-              <span class="badge badge-in_transit">In transit</span>
-            </div>
-            <div class="job-route">Prospect SA <span class="arrow">→</span> Whyalla SA</div>
-            <div class="job-meta">
-              <span style="font-size:11px;color:var(--text3)">Honda CB500 · Running</span>
-              <span style="font-size:11px;font-weight:600;color:var(--text);margin-left:auto">$420</span>
-            </div>
-          </div>
-          <div class="job-card status-confirmed" onclick="openJobDetail('BK-0045')">
-            <div class="job-card-top">
-              <div>
-                <div class="job-name">Sarah Nguyen</div>
-                <div class="job-time">Pickup 1:00 PM</div>
-              </div>
-              <span class="badge badge-confirmed">Confirmed</span>
-            </div>
-            <div class="job-route">Gawler SA <span class="arrow">→</span> Murray Bridge SA</div>
-            <div class="job-meta">
-              <span style="font-size:11px;color:var(--text3)">Yamaha R3 · Running</span>
-              <span style="font-size:11px;font-weight:600;color:var(--text);margin-left:auto">$310</span>
-            </div>
-          </div>
-          <div class="job-card status-confirmed" onclick="openJobDetail('BK-0046')">
-            <div class="job-card-top">
-              <div>
-                <div class="job-name">Brett Harman</div>
-                <div class="job-time">Pickup 3:30 PM</div>
-              </div>
-              <span class="badge badge-confirmed">Confirmed</span>
-            </div>
-            <div class="job-route">Salisbury SA <span class="arrow">→</span> Mount Gambier SA</div>
-            <div class="job-meta">
-              <span style="font-size:11px;color:var(--text3)">Suzuki GSX · Non-runner</span>
-              <span style="font-size:11px;font-weight:600;color:var(--text);margin-left:auto">$680</span>
-            </div>
-          </div>
-        </div>
+        <div class="today-grid" id="today-grid"></div>
 
         <!-- Week strip -->
         <div style="margin-top:24px">
@@ -930,6 +877,52 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
         </div>
       </div><!-- /view-ratecards -->
 
+      <!-- ══════════════════════════════════════
+           VIEW: DRIVERS
+      ══════════════════════════════════════ -->
+      <div class="view" id="view-drivers">
+        <div style="max-width:640px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+            <div>
+              <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:4px">Drivers</div>
+              <div style="font-size:13px;color:var(--text3)">Manage who can access the driver portal.</div>
+            </div>
+            <button class="btn btn-sm" onclick="document.getElementById('add-driver-form').style.display=document.getElementById('add-driver-form').style.display==='none'?'block':'none'">+ Add Driver</button>
+          </div>
+
+          <div id="add-driver-form" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:16px">Invite New Driver</div>
+            <div style="display:grid;gap:12px">
+              <div>
+                <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px">Full Name</label>
+                <input id="driver-name" type="text" placeholder="e.g. Jake Smith" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px">
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px">Email Address</label>
+                <input id="driver-email" type="email" placeholder="driver@email.com" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px">
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px">Temporary Password</label>
+                <input id="driver-pass" type="text" placeholder="They can change after first login" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px">
+              </div>
+              <div style="font-size:12px;color:var(--text3);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px">
+                <strong>How to add a driver:</strong><br>
+                1. Go to <a href="https://supabase.com/dashboard/project/ipwtvxzwbmrjjqytbdfy/auth/users" target="_blank" style="color:var(--red)">Supabase → Authentication → Users</a><br>
+                2. Click <strong>Invite user</strong> → enter their email<br>
+                3. Copy the user's UUID from the users list<br>
+                4. Run in <a href="https://supabase.com/dashboard/project/ipwtvxzwbmrjjqytbdfy/sql" target="_blank" style="color:var(--red)">SQL Editor</a>:<br>
+                <code style="display:block;margin-top:8px;padding:8px;background:var(--bg);border-radius:4px;font-size:11px;word-break:break-all">INSERT INTO user_profiles (id, role) VALUES ('&lt;uuid&gt;', 'driver');</code>
+              </div>
+            </div>
+          </div>
+
+          <div id="drivers-list" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Active Drivers</div>
+            <div id="drivers-tbody" style="padding:20px;color:var(--text3);font-size:13px">Loading...</div>
+          </div>
+        </div>
+      </div><!-- /view-drivers -->
+
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /shell -->
@@ -1109,17 +1102,94 @@ function updateMetrics() {
   }).reduce((a,b) => a + b.quote, 0);
   const needsReview = BOOKINGS.filter(b => b.needsReview && b.status === 'quote_sent').length;
 
-  // Update metric cards in overview
-  const metrics = document.querySelectorAll('.metric-value');
-  if (metrics[0]) metrics[0].textContent = todayJobs;
-  if (metrics[1]) metrics[1].textContent = weekJobs;
-  if (metrics[2]) metrics[2].textContent = '$' + mtdRevenue.toLocaleString();
-  if (metrics[3]) { metrics[3].textContent = needsReview; metrics[3].style.color = needsReview > 0 ? 'var(--amber)' : 'var(--text)'; }
+  // Update metric cards
+  const el = id => document.getElementById(id);
+  if (el('m-today')) el('m-today').textContent = todayJobs;
+  if (el('m-week'))  el('m-week').textContent  = weekJobs;
+  if (el('m-revenue')) el('m-revenue').textContent = '$' + mtdRevenue.toLocaleString();
+  if (el('m-review')) {
+    el('m-review').textContent = needsReview;
+    el('m-review').style.color = needsReview > 0 ? 'var(--amber)' : 'var(--text)';
+  }
+  const todaySub = el('m-today-sub');
+  if (todaySub) {
+    const confirmed  = BOOKINGS.filter(b => b.date === today && b.status === 'confirmed').length;
+    const inTransit  = BOOKINGS.filter(b => b.date === today && b.status === 'in_transit').length;
+    todaySub.textContent = `${confirmed} confirmed · ${inTransit} in transit`;
+  }
 
   // Pending badge
   const pending = BOOKINGS.filter(b => b.status === 'pending_quote' || b.status === 'quote_sent').length;
   const nb = document.getElementById('nb-pending');
   if (nb) nb.textContent = pending;
+
+  // Render dynamic overview sections
+  renderOverview(today);
+}
+
+function renderOverview(today) {
+  // Needs review queue
+  const reviewItems = BOOKINGS.filter(b => b.needsReview);
+  const wrap = document.getElementById('review-queue-wrap');
+  const body = document.getElementById('review-queue-body');
+  if (wrap && body) {
+    if (reviewItems.length > 0) {
+      wrap.style.display = '';
+      body.innerHTML = `
+        <div class="review-queue-header">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 1a6 6 0 100 12A6 6 0 007 1zm0 9a.75.75 0 110-1.5A.75.75 0 017 10zm.75-3.25a.75.75 0 01-1.5 0V4.5a.75.75 0 011.5 0v2.25z"/></svg>
+          ${reviewItems.length} booking${reviewItems.length > 1 ? 's' : ''} need your attention
+        </div>
+        ${reviewItems.map(b => `
+          <div class="review-item" onclick="openJobDetail('${b.id}')">
+            <div class="review-item-name">${b.name}</div>
+            <div class="review-item-info">${b.pickup} <span style="color:var(--text3)">→</span> ${b.dropoff} · ${formatDate(b.date)}</div>
+            <div class="review-item-reason">${b.reviewReason || 'Needs admin review'}</div>
+          </div>`).join('')}
+      `;
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+
+  // Today's jobs grid
+  const grid = document.getElementById('today-grid');
+  if (grid) {
+    const todayJobs = BOOKINGS.filter(b => b.date === today);
+    if (todayJobs.length === 0) {
+      grid.innerHTML = '<p style="color:var(--text3);font-size:13px;padding:16px 0">No jobs scheduled for today.</p>';
+    } else {
+      grid.innerHTML = todayJobs.map(b => {
+        const bikeStr = (b.bikes || []).map(bk => `${bk.make||''} ${bk.model||''}`.trim() || bk.bike_type).join(', ') || '—';
+        const timeStr = b.time ? formatTime(b.time) : '';
+        const statusLabel = {'confirmed':'Confirmed','in_transit':'In transit','completed':'Completed','pending_quote':'Pending','quote_sent':'Quote sent','cancelled':'Cancelled'}[b.status] || b.status;
+        return `<div class="job-card status-${b.status}" onclick="openJobDetail('${b.id}')">
+          <div class="job-card-top">
+            <div>
+              <div class="job-name">${b.name}</div>
+              <div class="job-time">${timeStr ? 'Pickup ' + timeStr : '—'}</div>
+            </div>
+            <span class="badge badge-${b.status}">${statusLabel}</span>
+          </div>
+          <div class="job-route">${b.pickup} <span class="arrow">→</span> ${b.dropoff}</div>
+          <div class="job-meta">
+            <span style="font-size:11px;color:var(--text3)">${bikeStr}</span>
+            <span style="font-size:11px;font-weight:600;color:var(--text);margin-left:auto">${b.quote ? '$' + b.quote.toFixed(0) : '—'}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+}
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
 }
 
 // Subscribe to realtime updates so dashboard refreshes when new bookings arrive
@@ -1147,11 +1217,12 @@ function showView(viewId, navEl){
   document.getElementById('view-'+viewId).classList.add('active');
   if(navEl) navEl.classList.add('active');
 
-  const titles={overview:'Overview',bookings:'All Bookings',detail:'Job Detail',calendar:'Calendar',ratecards:'Rate Card'};
+  const titles={overview:'Overview',bookings:'All Bookings',detail:'Job Detail',calendar:'Calendar',ratecards:'Rate Card',drivers:'Drivers'};
   document.getElementById('page-title').textContent=titles[viewId]||viewId;
 
   if(viewId==='bookings')   renderBookingsTable();
   if(viewId==='calendar')   renderCalendar();
+  if(viewId==='drivers')    loadDrivers();
   if(viewId==='overview')   renderWeekStrip();
 }
 
@@ -1514,6 +1585,39 @@ function formatDate(d){
   if(!d) return '—';
   const dt=new Date(d+'T12:00:00');
   return dt.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+}
+
+// ============================================================
+// DRIVERS
+// ============================================================
+async function loadDrivers() {
+  if (!_supabase) return;
+  const el = document.getElementById('drivers-tbody');
+  if (!el) return;
+  el.textContent = 'Loading...';
+
+  const { data, error } = await _supabase
+    .from('user_profiles')
+    .select('id, role, created_at')
+    .eq('role', 'driver');
+
+  if (error || !data || data.length === 0) {
+    el.innerHTML = '<p style="color:var(--text3);font-size:13px">No drivers added yet. Click "+ Add Driver" above for instructions.</p>';
+    return;
+  }
+
+  el.innerHTML = data.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--text2)">D</div>
+        <div>
+          <div style="font-size:13px;font-weight:600">Driver</div>
+          <div style="font-size:11px;color:var(--text3)">ID: ${d.id.slice(0,8)}…</div>
+        </div>
+      </div>
+      <span style="font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;color:var(--text2)">Active</span>
+    </div>
+  `).join('');
 }
 
 // ============================================================
