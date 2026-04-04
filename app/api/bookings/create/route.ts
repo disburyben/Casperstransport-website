@@ -154,35 +154,39 @@ export async function POST(req: NextRequest) {
       { booking_id: bookingId, comms_type: 'admin_notification', status: 'sent', recipient: ADMIN_EMAIL, sent_at: new Date().toISOString() },
     ]);
 
-    // ---- 6. Stripe checkout ----
+    // ---- 6. Stripe checkout (non-fatal — falls back to follow-up if keys not set) ----
     let stripeUrl: string | null = null;
     if (payment_method === 'stripe_deposit' && quote?.deposit > 0) {
-      const stripe = getStripe();
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        mode:                 'payment',
-        line_items: [{
-          price_data: {
-            currency:     'aud',
-            product_data: {
-              name:        `Caspers Transport — Deposit`,
-              description: `Transport deposit for ${bikesSummary}. Pickup: ${pickup_date}`,
+      try {
+        const stripe = getStripe();
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          mode:                 'payment',
+          line_items: [{
+            price_data: {
+              currency:     'aud',
+              product_data: {
+                name:        `Caspers Transport — Deposit`,
+                description: `Transport deposit for ${bikesSummary}. Pickup: ${pickup_date}`,
+              },
+              unit_amount: Math.round(quote.deposit * 100),
             },
-            unit_amount: Math.round(quote.deposit * 100),
-          },
-          quantity: 1,
-        }],
-        metadata: { booking_id: bookingId },
-        success_url: `${APP_URL}/booking/payment-success?booking=${bookingId}`,
-        cancel_url:  `${APP_URL}/booking/payment-cancelled?booking=${bookingId}`,
-        customer_email: email,
-      });
+            quantity: 1,
+          }],
+          metadata: { booking_id: bookingId },
+          success_url: `${APP_URL}/booking/payment-success?booking=${bookingId}`,
+          cancel_url:  `${APP_URL}/booking/payment-cancelled?booking=${bookingId}`,
+          customer_email: email,
+        });
 
-      stripeUrl = session.url;
+        stripeUrl = session.url;
 
-      await supabase.from('bookings')
-        .update({ stripe_payment_id: session.id })
-        .eq('id', bookingId);
+        await supabase.from('bookings')
+          .update({ stripe_payment_id: session.id })
+          .eq('id', bookingId);
+      } catch (stripeErr: any) {
+        console.error('Stripe checkout failed (non-fatal):', stripeErr.message);
+      }
     }
 
     return NextResponse.json({ success: true, bookingId, stripeUrl });
@@ -236,7 +240,7 @@ function buildQuoteEmail({ name, bikesSummary, pickup_address, dropoff_address,
         <div style="text-align:center;margin:32px 0;">${ctaButton}</div>
         ${payment_method === 'follow_up' ? `<p style="text-align:center;font-size:13px;color:#898880;margin-top:16px;">A member of our team will be in touch to arrange payment and confirm your booking.</p>` : `<p style="text-align:center;font-size:13px;color:#898880;margin-top:16px;">Click the button above to pay your deposit and lock in your booking.</p>`}
         <hr style="border:none;border-top:1px solid #E8E7E5;margin:32px 0;">
-        <p style="font-size:13px;color:#898880;margin:0;">Questions? Call or text us at <a href="tel:+61XXXXXXXXXX" style="color:#4FC1DB;">0X XXXX XXXX</a> or reply to this email.<br><em>Note: This quote is an estimate. Final price confirmed before booking is locked in.</em></p>
+        <p style="font-size:13px;color:#898880;margin:0;">Questions? Call or text us at <a href="tel:0434271510" style="color:#4FC1DB;">0434 271 510</a> or reply to this email.<br><em>Note: This quote is an estimate. Final price confirmed before booking is locked in.</em></p>
       </div>
     </div>
   `;
