@@ -2032,8 +2032,8 @@ function renderDetail(id){
             <button class="action-btn" onclick="sendConfirmationEmail('${b.id}','${b.email}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><polyline points="1 3 7 8.5 13 3"/><polyline points="4 10 6 8" stroke-width="1.5"/></svg>Send Confirmation Email</button>
             <a href="/api/job-sheet/${b.id}" target="_blank" class="action-btn" style="text-decoration:none;color:var(--text)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 1h7l3 3v9H2V1z"/><polyline points="9 1 9 4 12 4"/><line x1="4" y1="7" x2="10" y2="7"/><line x1="4" y1="9.5" x2="10" y2="9.5"/></svg>View Job Sheet PDF</a>
             <button class="action-btn" onclick="emailJobSheet('${b.id}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><polyline points="1 3 7 8.5 13 3"/></svg>Email Job Sheet</button>
-            <button class="action-btn" onclick="showToast('Resend quote — coming soon','')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><polyline points="1 3 7 8.5 13 3"/></svg>Resend Quote</button>
-            <button class="action-btn" onclick="showToast('Invoice — coming soon','')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="8" x2="10" y2="8"/></svg>Send Invoice</button>
+            <button class="action-btn" onclick="resendQuote('${b.id}',this)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><polyline points="1 3 7 8.5 13 3"/></svg>Resend Quote</button>
+            <button class="action-btn" onclick="sendInvoiceFromDetail('${b.id}',this)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="8" x2="10" y2="8"/></svg>Send Invoice</button>
             <a href="https://www.google.com/maps/dir/Roseworthy+SA/${encodeURIComponent(b.pickup)}/${encodeURIComponent(b.dropoff)}" target="_blank" class="action-btn" style="text-decoration:none;color:var(--text)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="6" r="2.5"/><path d="M7 1C4.2 1 2 3.2 2 6c0 4 5 8 5 8s5-4 5-8c0-2.8-2.2-5-5-5z"/></svg>Open Route in Maps</button>
             <button class="action-btn" style="color:var(--red);border-color:var(--red-border)" onclick="updateStatus('cancelled')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>Cancel Booking</button>
           </div>
@@ -2910,6 +2910,42 @@ function renderInvoicesTable() {
       </td>
     </tr>`;
   }).join('');
+}
+
+async function sendInvoiceFromDetail(bookingId, btn) {
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('/api/admin/invoices/send', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ bookingId }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    showToast(`Invoice ${d.invoiceNum} sent`, 'success');
+    btn.textContent = 'Invoice Sent';
+    loadCommsLog(bookingId);
+  } catch(e) {
+    showToast(e.message || 'Failed to send invoice', 'error');
+    btn.disabled = false; btn.textContent = 'Send Invoice';
+  }
+}
+
+async function resendQuote(bookingId, btn) {
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('/api/admin/quotes/resend', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ bookingId }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    showToast('Quote resent to customer', 'success');
+    btn.disabled = false; btn.textContent = 'Resend Quote';
+    loadCommsLog(bookingId);
+  } catch(e) {
+    showToast(e.message || 'Failed to resend quote', 'error');
+    btn.disabled = false; btn.textContent = 'Resend Quote';
+  }
 }
 
 async function invSend(bookingId, btn) {
