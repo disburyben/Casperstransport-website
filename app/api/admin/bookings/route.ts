@@ -28,14 +28,11 @@ export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
-  // Delete child records first (FK constraints)
-  await supabase.from('comms_log').delete().eq('booking_id', id);
-  await supabase.from('calendar_blocks').delete().eq('booking_id', id);
-  await supabase.from('quotes').delete().eq('booking_id', id);
-  await supabase.from('bikes').delete().eq('booking_id', id);
-
-  // Clear self-referential linked_booking_id to avoid FK conflict
+  // Clear self-referential linked_booking_id, then delete
+  // FK ON DELETE CASCADE handles: bikes, quotes, comms_log, calendar_blocks
   await supabase.from('bookings').update({ linked_booking_id: null }).eq('id', id);
+  // Also null out any other bookings referencing this one
+  await supabase.from('bookings').update({ linked_booking_id: null }).eq('linked_booking_id', id);
 
   const { error } = await supabase.from('bookings').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

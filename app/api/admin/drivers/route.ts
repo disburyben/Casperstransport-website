@@ -52,3 +52,45 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ driver: data });
 }
+
+// PATCH /api/admin/drivers  { id, pin?, active?, name?, vehicle?, phone? }
+export async function PATCH(req: NextRequest) {
+  if (!await requireAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const body = await req.json();
+  const { id, ...rest } = body;
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  const update: Record<string, any> = {};
+  if (rest.name    !== undefined) update.name    = rest.name;
+  if (rest.vehicle !== undefined) update.vehicle = rest.vehicle;
+  if (rest.phone   !== undefined) update.phone   = rest.phone;
+  if (rest.active  !== undefined) update.active  = rest.active;
+  if (rest.pin) {
+    if (!/^\d{4}$/.test(rest.pin)) return NextResponse.json({ error: 'PIN must be 4 digits' }, { status: 400 });
+    update.pin_hash = hashPin(rest.pin);
+    await supabase.from('driver_sessions').delete().eq('driver_id', id);
+  }
+
+  const { data, error } = await supabase
+    .from('drivers')
+    .update(update)
+    .eq('id', id)
+    .select('id, name, vehicle, phone, active')
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ driver: data });
+}
+
+// DELETE /api/admin/drivers  { id }
+export async function DELETE(req: NextRequest) {
+  if (!await requireAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { id } = await req.json();
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  const { error } = await supabase.from('drivers').delete().eq('id', id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}

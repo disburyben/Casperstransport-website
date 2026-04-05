@@ -1361,6 +1361,19 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
         </div>
       </div>
 
+      <!-- PIN input modal -->
+      <div class="confirm-overlay" id="pin-overlay">
+        <div class="confirm-box">
+          <div class="confirm-title" id="pin-modal-title">Reset PIN</div>
+          <div class="confirm-msg" id="pin-modal-msg"></div>
+          <input id="pin-modal-input" class="search-input" style="max-width:100%;margin-bottom:16px;letter-spacing:0.2em;font-size:18px;text-align:center" maxlength="4" placeholder="0000" inputmode="numeric" pattern="\d{4}">
+          <div class="confirm-actions">
+            <button class="btn" onclick="pinCancel()">Cancel</button>
+            <button class="btn btn-primary" onclick="pinOk()">Set PIN</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Signature viewer modal -->
       <div class="sig-modal-overlay" id="sig-modal-overlay" onclick="closeSigModal(event)">
         <div class="sig-modal">
@@ -2681,23 +2694,22 @@ async function createDriver() {
 }
 
 async function resetDriverPin(id, name) {
-  const newPin = prompt(`Enter new 4-digit PIN for ${name}:`);
-  if (!newPin) return;
-  if (!/^\d{4}$/.test(newPin)) { showToast('PIN must be 4 digits', 'error'); return; }
-  const res = await fetch(`/api/admin/drivers/${id}`, {
+  const pin = await showPinPrompt(`Reset PIN for ${name}`, 'Enter a new 4-digit PIN');
+  if (!pin) return;
+  const res = await fetch('/api/admin/drivers', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pin: newPin }),
+    body: JSON.stringify({ id, pin }),
   });
   if (res.ok) showToast(`PIN updated for ${name}`, 'success');
   else showToast('Failed to update PIN', 'error');
 }
 
 async function toggleDriverActive(id, active, name) {
-  const res = await fetch(`/api/admin/drivers/${id}`, {
+  const res = await fetch('/api/admin/drivers', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ active: !active }),
+    body: JSON.stringify({ id, active: !active }),
   });
   if (res.ok) { showToast(`${name} ${active ? 'deactivated' : 'activated'}`, 'success'); loadDrivers(); }
   else showToast('Failed to update driver', 'error');
@@ -2706,7 +2718,11 @@ async function toggleDriverActive(id, active, name) {
 async function removeDriver(id, name) {
   await showConfirm('Remove driver?', `${name} will lose access immediately.`, 'Remove');
   if (!_confirmResult) return;
-  const res = await fetch(`/api/admin/drivers/${id}`, { method: 'DELETE' });
+  const res = await fetch('/api/admin/drivers', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+  });
   if (res.ok) { showToast(`${name} removed`, 'success'); loadDrivers(); }
   else showToast('Failed to remove driver', 'error');
 }
@@ -3070,10 +3086,9 @@ function updateRcPreview(){
 // ============================================================
 // JOB DETAIL ACTIONS
 // ============================================================
-async function emailJobSheet(id) {
-  const btn = event.currentTarget;
-  btn.textContent = 'Sending...';
-  btn.disabled = true;
+async function emailJobSheet(id, btn) {
+  if (!btn) btn = event && event.currentTarget;
+  if (btn) { btn.textContent = 'Sending...'; btn.disabled = true; }
   try {
     const res = await fetch(`/api/job-sheet/${id}`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed');
@@ -3081,8 +3096,7 @@ async function emailJobSheet(id) {
   } catch(e) {
     showToast('Email failed — try again', 'error');
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Email Job Sheet';
+    if (btn) { btn.disabled = false; btn.textContent = 'Email Job Sheet'; }
   }
 }
 
@@ -3816,6 +3830,34 @@ function closeSigModal(event) {
   if (event.target === event.currentTarget) {
     document.getElementById('sig-modal-overlay').classList.remove('open');
   }
+}
+
+// ============================================================
+// PIN INPUT MODAL
+// ============================================================
+let _pinResolve = null;
+
+function showPinPrompt(title, msg) {
+  return new Promise(resolve => {
+    _pinResolve = resolve;
+    document.getElementById('pin-modal-title').textContent = title;
+    document.getElementById('pin-modal-msg').textContent   = msg;
+    document.getElementById('pin-modal-input').value       = '';
+    document.getElementById('pin-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('pin-modal-input').focus(), 50);
+  });
+}
+
+function pinOk() {
+  const val = (document.getElementById('pin-modal-input').value || '').trim();
+  if (!/^\d{4}$/.test(val)) { showToast('PIN must be 4 digits', 'error'); return; }
+  document.getElementById('pin-overlay').classList.remove('open');
+  if (_pinResolve) { _pinResolve(val); _pinResolve = null; }
+}
+
+function pinCancel() {
+  document.getElementById('pin-overlay').classList.remove('open');
+  if (_pinResolve) { _pinResolve(null); _pinResolve = null; }
 }
 
 // ============================================================
