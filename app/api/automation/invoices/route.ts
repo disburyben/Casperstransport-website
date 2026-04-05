@@ -130,9 +130,11 @@ function buildInvoiceEmail({ booking, customer, bikes, quote, invoiceNum, invoic
   const condS  = parseFloat(quote.condition_surcharge || 0).toFixed(2);
   const disc   = parseFloat(quote.multi_bike_discount || 0).toFixed(2);
   const fuel   = parseFloat(quote.fuel_levy_amount    || 0).toFixed(2);
-  const total  = parseFloat(quote.total_aud).toFixed(2);
+  // Fall back to calculating total from line items if total_aud is missing/zero
+  const calculatedTotal = parseFloat(base) + parseFloat(kmCost) + parseFloat(condS) - parseFloat(disc) + parseFloat(fuel);
+  const total  = (parseFloat(quote.total_aud) > 0 ? parseFloat(quote.total_aud) : calculatedTotal).toFixed(2);
   const deposit = booking.deposit_paid
-    ? (parseFloat(total) * (parseFloat(quote.stripe_deposit_pct || 20) / 100)).toFixed(2)
+    ? (parseFloat(total) * 0.2).toFixed(2)
     : '0.00';
   const balance = (parseFloat(total) - parseFloat(deposit)).toFixed(2);
 
