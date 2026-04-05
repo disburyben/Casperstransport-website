@@ -1777,13 +1777,32 @@ function formatTime(t) {
   return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
 }
 
-// Subscribe to realtime updates so dashboard refreshes when new bookings arrive
+// Subscribe to realtime updates — bookings, invoices, and drivers all stay live
 function subscribeRealtime() {
   if (!_supabase) return;
+
+  // Bookings — refresh everything that depends on booking data
   _supabase
     .channel('bookings-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
       loadBookings();
+      if (document.getElementById('view-invoices').classList.contains('active')) loadInvoices();
+    })
+    .subscribe();
+
+  // Comms log — refresh invoices tab when an email is sent/logged
+  _supabase
+    .channel('comms-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'comms_log' }, () => {
+      if (document.getElementById('view-invoices').classList.contains('active')) loadInvoices();
+    })
+    .subscribe();
+
+  // Drivers — refresh drivers tab when a driver is added/changed
+  _supabase
+    .channel('drivers-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'drivers' }, () => {
+      if (document.getElementById('view-drivers').classList.contains('active')) loadDrivers();
     })
     .subscribe();
 }
