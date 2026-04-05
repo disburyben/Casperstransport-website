@@ -3269,7 +3269,10 @@ function renderInvoicesTable() {
         ${sentInfo}${reminderInfo}${paidInfo}
       </td>
       <td>
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">${actions}</div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">
+          ${actions}
+          <button class="btn btn-sm btn-ghost" style="color:#E05252;margin-top:2px" onclick="deleteBooking('${inv.id}','${(inv.customer?.name||'').replace(/'/g,"\\'")}',this)">Delete</button>
+        </div>
       </td>
     </tr>`;
   }).join('');
@@ -3418,13 +3421,21 @@ function renderCustomersTable() {
     </tr>
     <tr class="cust-row-detail" id="cust-detail-${c.id}" style="display:none">
       <td colspan="6">
-        <div style="display:flex;gap:24px;flex-wrap:wrap">
-          <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:6px">Contact</div>
-            <div style="font-size:13px;color:var(--text)">${c.email || '—'}</div>
-            <div style="font-size:13px;color:var(--text2)">${c.phone || '—'}</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+
+          <!-- Edit form -->
+          <div id="cust-edit-${c.id}" style="min-width:220px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:8px">Edit Details</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <input id="cust-edit-name-${c.id}"  class="search-input" style="max-width:100%" value="${c.name}" placeholder="Name">
+              <input id="cust-edit-email-${c.id}" class="search-input" style="max-width:100%" value="${c.email||''}" placeholder="Email">
+              <input id="cust-edit-phone-${c.id}" class="search-input" style="max-width:100%" value="${c.phone||''}" placeholder="Phone">
+              <button class="btn btn-sm btn-primary" onclick="saveCustomer('${c.id}',event)">Save</button>
+            </div>
           </div>
-          <div style="flex:1">
+
+          <!-- Booking history -->
+          <div style="flex:1;min-width:200px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:6px">Booking History</div>
             ${BOOKINGS.filter(b=>b.email===c.email).slice(0,5).map(b=>`
               <div class="cust-history-item">
@@ -3432,12 +3443,16 @@ function renderCustomersTable() {
                 <span style="color:var(--text2)">${b.pickup} → ${b.dropoff}</span>
                 <span style="margin-left:auto">${b.quote>0?'A$'+b.quote.toFixed(2):'—'}</span>
                 <span class="badge ${statusBadgeClass(b.status)}">${statusLabel(b.status)}</span>
-              </div>`).join('') || '<div style="color:var(--text3);font-size:12px">No recent bookings</div>'}
+              </div>`).join('') || '<div style="color:var(--text3);font-size:12px">No bookings yet</div>'}
           </div>
-          <div style="display:flex;align-items:flex-start;gap:8px;padding-top:4px">
-            <a href="mailto:${c.email}" class="btn btn-sm" style="text-decoration:none">Email</a>
-            ${c.phone ? `<a href="tel:${c.phone}" class="btn btn-sm" style="text-decoration:none">Call</a>` : ''}
+
+          <!-- Actions -->
+          <div style="display:flex;flex-direction:column;gap:6px;padding-top:4px;flex-shrink:0">
+            <a href="mailto:${c.email}" class="btn btn-sm" style="text-decoration:none;text-align:center">Email</a>
+            ${c.phone ? `<a href="tel:${c.phone}" class="btn btn-sm" style="text-decoration:none;text-align:center">Call</a>` : ''}
+            <button class="btn btn-sm btn-ghost" style="color:#E05252;margin-top:8px" onclick="deleteCustomer('${c.id}','${c.name.replace(/'/g,"\\'")}',event)">Delete Customer</button>
           </div>
+
         </div>
       </td>
     </tr>
@@ -3708,9 +3723,12 @@ function renderDocsTable() {
       <td>${sigStatus(d.hasPickupSig, d.pickupSigAt)}</td>
       <td>${sigStatus(d.hasDropoffSig, d.dropoffSigAt)}</td>
       <td>
-        ${(d.hasPickupSig || d.hasDropoffSig)
-          ? `<button class="btn btn-sm" onclick="viewSignatures('${d.id}','${d.customer}',event)">View Sigs</button>`
-          : `<span style="color:var(--text3);font-size:12px">No sigs</span>`}
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${(d.hasPickupSig || d.hasDropoffSig)
+            ? `<button class="btn btn-sm" onclick="viewSignatures('${d.id}','${d.customer}',event)">View Sigs</button>`
+            : `<span style="color:var(--text3);font-size:12px">No sigs</span>`}
+          <button class="btn btn-sm btn-ghost" style="color:#E05252" onclick="deleteBooking('${d.id}','${d.customer.replace(/'/g,"\\'")}',event)">Delete</button>
+        </div>
       </td>
     </tr>
   `).join('');
@@ -3752,6 +3770,63 @@ async function viewSignatures(bookingId, customerName, event) {
 function closeSigModal(event) {
   if (event.target === event.currentTarget) {
     document.getElementById('sig-modal-overlay').classList.remove('open');
+  }
+}
+
+// ============================================================
+// DELETE / EDIT HELPERS
+// ============================================================
+
+async function deleteBooking(id, customerName, event) {
+  if (event) event.stopPropagation();
+  if (!confirm(`Delete this booking for ${customerName}?\n\nThis permanently removes the booking, quotes, bikes, and all emails. Cannot be undone.`)) return;
+  try {
+    const res = await fetch('/api/admin/bookings', {
+      method: 'DELETE', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    showToast('Booking deleted', 'success');
+    // Refresh whichever tab is active
+    await loadBookings();
+    if (document.getElementById('view-invoices').classList.contains('active'))   loadInvoices();
+    if (document.getElementById('view-documents').classList.contains('active'))  loadDocuments();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function saveCustomer(id, event) {
+  event.stopPropagation();
+  const name  = document.getElementById('cust-edit-name-'  + id)?.value.trim();
+  const email = document.getElementById('cust-edit-email-' + id)?.value.trim();
+  const phone = document.getElementById('cust-edit-phone-' + id)?.value.trim();
+  if (!name) { showToast('Name cannot be empty', 'error'); return; }
+  try {
+    const res = await fetch(`/api/admin/customers/${id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, email, phone }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    showToast('Customer updated', 'success');
+    await loadCustomers();
+    await loadBookings(); // refresh so history reflects new name
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function deleteCustomer(id, name, event) {
+  event.stopPropagation();
+  if (!confirm(`Delete ${name} and ALL their bookings?\n\nThis removes the customer, every booking, all invoices, and all emails for this person. Cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/api/admin/customers/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error((await res.json()).error);
+    showToast(`${name} deleted`, 'success');
+    await loadBookings();
+    await loadCustomers();
+  } catch(e) {
+    showToast(e.message, 'error');
   }
 }
 </script>
