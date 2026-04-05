@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, resend, validateCronSecret,
-  BOOKING_QUERY, FROM_EMAIL, APP_URL, ADMIN_EMAIL
+  BOOKING_QUERY, FROM_EMAIL, APP_URL, ADMIN_EMAIL, getSentBookingIds
 } from '@/automation/triggers';
 
 export async function POST(req: NextRequest) {
@@ -26,16 +26,12 @@ export async function POST(req: NextRequest) {
   const tomorrowStr = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD
 
   // Fetch all confirmed bookings for tomorrow that haven't had a 24h reminder sent
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select(BOOKING_QUERY)
+  const sentIds = await getSentBookingIds('reminder_24h_email');
+  let query = supabase.from('bookings').select(BOOKING_QUERY)
     .eq('pickup_date', tomorrowStr)
-    .in('status', ['confirmed', 'in_transit'])
-    .not('id', 'in', `(
-      select booking_id from comms_log
-      where comms_type = 'reminder_24h_email'
-      and status = 'sent'
-    )`);
+    .in('status', ['confirmed', 'in_transit']);
+  if (sentIds.length > 0) query = query.not('id', 'in', `(${sentIds.join(',')})`);
+  const { data: bookings, error } = await query;
 
   if (error) {
     console.error('24h reminder query failed:', error);

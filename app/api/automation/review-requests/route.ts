@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, resend, validateCronSecret,
-  BOOKING_QUERY, FROM_EMAIL
+  BOOKING_QUERY, FROM_EMAIL, getSentBookingIds
 } from '@/automation/triggers';
 
 const GOOGLE_REVIEW_URL   = process.env.GOOGLE_REVIEW_URL   || 'https://g.page/r/YOUR_GOOGLE_REVIEW_LINK';
@@ -29,13 +29,22 @@ export async function POST(req: NextRequest) {
   // Find completed bookings from 3 days ago:
   // - Invoice already sent (completed + invoice in comms_log)
   // - Review request NOT yet sent
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select(BOOKING_QUERY)
+  const [reviewSentIds, invoiceSentIds] = await Promise.all([
+    getSentBookingIds('review_request_email'),
+    getSentBookingIds('invoice_email'),
+  ]);
+
+  // Must have invoice sent, must not have review already sent
+  if (invoiceSentIds.length === 0) {
+    return NextResponse.json({ sent: 0, message: 'No review requests due today' });
+  }
+
+  let query = supabase.from('bookings').select(BOOKING_QUERY)
     .eq('status', 'completed')
     .eq('pickup_date', targetDate)
-    .not('id', 'in', `(select booking_id from comms_log where comms_type = 'review_request_email' and status = 'sent')`)
-    .filter('id', 'in', `(select booking_id from comms_log where comms_type = 'invoice_email' and status = 'sent')`);
+    .in('id', invoiceSentIds);
+  if (reviewSentIds.length > 0) query = query.not('id', 'in', `(${reviewSentIds.join(',')})`);
+  const { data: bookings, error } = await query;
 
   if (error) {
     console.error('Review request query failed:', error);

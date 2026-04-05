@@ -33,6 +33,17 @@ export function validateCronSecret(req: Request): boolean {
   return secret === process.env.CRON_SECRET;
 }
 
+// Returns booking IDs that have already had a given comms type sent successfully.
+// Use this to exclude already-contacted bookings — PostgREST doesn't support subqueries.
+export async function getSentBookingIds(commsType: string): Promise<string[]> {
+  const { data } = await supabase
+    .from('comms_log')
+    .select('booking_id')
+    .eq('comms_type', commsType)
+    .eq('status', 'sent');
+  return (data || []).map((r: any) => r.booking_id).filter(Boolean);
+}
+
 export const BOOKING_QUERY = `
   id, status, trip_type, pickup_date, pickup_time,
   pickup_address, dropoff_address, distance_km, return_km,

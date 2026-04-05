@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, twilioClient, validateCronSecret,
-  BOOKING_QUERY, TWILIO_FROM, CASPERS_PHONE
+  BOOKING_QUERY, TWILIO_FROM, CASPERS_PHONE, getSentBookingIds
 } from '@/automation/triggers';
 
 export async function POST(req: NextRequest) {
@@ -22,16 +22,12 @@ export async function POST(req: NextRequest) {
   const todayStr = now.toISOString().split('T')[0];
 
   // Fetch today's confirmed bookings that haven't had a 2h SMS sent yet
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select(BOOKING_QUERY)
+  const sentIds = await getSentBookingIds('reminder_2h_sms');
+  let query = supabase.from('bookings').select(BOOKING_QUERY)
     .eq('pickup_date', todayStr)
-    .in('status', ['confirmed'])
-    .not('id', 'in', `(
-      select booking_id from comms_log
-      where comms_type = 'reminder_2h_sms'
-      and status = 'sent'
-    )`);
+    .in('status', ['confirmed']);
+  if (sentIds.length > 0) query = query.not('id', 'in', `(${sentIds.join(',')})`);
+  const { data: bookings, error } = await query;
 
   if (error) {
     console.error('2h SMS reminder query failed:', error);

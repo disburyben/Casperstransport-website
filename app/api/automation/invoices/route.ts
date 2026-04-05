@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   supabase, resend, validateCronSecret,
-  BOOKING_QUERY, FROM_EMAIL, ADMIN_EMAIL
+  BOOKING_QUERY, FROM_EMAIL, ADMIN_EMAIL, getSentBookingIds
 } from '@/automation/triggers';
 
 export async function POST(req: NextRequest) {
@@ -20,15 +20,10 @@ export async function POST(req: NextRequest) {
   }
 
   // Find completed bookings that haven't had an invoice sent
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select(BOOKING_QUERY)
-    .eq('status', 'completed')
-    .not('id', 'in', `(
-      select booking_id from comms_log
-      where comms_type = 'invoice_email'
-      and status = 'sent'
-    )`);
+  const sentIds = await getSentBookingIds('invoice_email');
+  let query = supabase.from('bookings').select(BOOKING_QUERY).eq('status', 'completed');
+  if (sentIds.length > 0) query = query.not('id', 'in', `(${sentIds.join(',')})`);
+  const { data: bookings, error } = await query;
 
   if (error) {
     console.error('Invoice query failed:', error);
