@@ -953,50 +953,44 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
           <!-- Add driver form -->
           <div class="detail-card" style="margin-bottom:20px">
             <div class="detail-card-header">
-              <div class="detail-card-title">Add New User</div>
+              <div class="detail-card-title">Add Driver</div>
             </div>
             <div class="detail-card-body">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
                 <div>
                   <div class="info-label" style="margin-bottom:6px">Full name</div>
-                  <input id="new-user-name" type="text" placeholder="e.g. Jake Smith"
+                  <input id="new-drv-name" type="text" placeholder="e.g. Jake Smith"
                     style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
                 </div>
                 <div>
-                  <div class="info-label" style="margin-bottom:6px">Email address</div>
-                  <input id="new-user-email" type="email" placeholder="driver@email.com"
+                  <div class="info-label" style="margin-bottom:6px">4-digit PIN</div>
+                  <input id="new-drv-pin" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 4821"
+                    style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none;letter-spacing:0.2em">
+                </div>
+                <div>
+                  <div class="info-label" style="margin-bottom:6px">Vehicle (optional)</div>
+                  <input id="new-drv-vehicle" type="text" placeholder="e.g. White Hilux"
                     style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
                 </div>
                 <div>
-                  <div class="info-label" style="margin-bottom:6px">Temporary password</div>
-                  <input id="new-user-pass" type="text" placeholder="Min 6 characters"
+                  <div class="info-label" style="margin-bottom:6px">Phone (optional)</div>
+                  <input id="new-drv-phone" type="tel" placeholder="04xx xxx xxx"
                     style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
-                </div>
-                <div>
-                  <div class="info-label" style="margin-bottom:6px">Role</div>
-                  <select id="new-user-role"
-                    style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none">
-                    <option value="driver">Driver</option>
-                    <option value="admin">Admin</option>
-                  </select>
                 </div>
               </div>
-              <div style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.6">
-                The user will receive a login invite to the email above. They can change their password after first login.
-              </div>
-              <div id="invite-msg" style="display:none;font-size:13px;padding:10px 12px;border-radius:var(--radius);margin-bottom:14px"></div>
-              <button class="btn btn-primary btn-sm" id="invite-btn" onclick="inviteUser()">+ Add User</button>
+              <div id="drv-invite-msg" style="display:none;font-size:13px;padding:10px 12px;border-radius:var(--radius);margin-bottom:14px"></div>
+              <button class="btn btn-primary btn-sm" id="drv-invite-btn" onclick="createDriver()">+ Add Driver</button>
             </div>
           </div>
 
-          <!-- Users list -->
+          <!-- Drivers list -->
           <div class="detail-card">
             <div class="detail-card-header">
-              <div class="detail-card-title">All Users</div>
+              <div class="detail-card-title">All Drivers</div>
               <button class="btn btn-sm btn-ghost" onclick="loadDrivers()">Refresh</button>
             </div>
             <div class="detail-card-body" style="padding:0">
-              <div id="users-list-body" style="color:var(--text3);font-size:13px;padding:20px">Loading...</div>
+              <div id="drivers-list-body" style="color:var(--text3);font-size:13px;padding:20px">Loading...</div>
             </div>
           </div>
 
@@ -2002,139 +1996,112 @@ function formatDate(d){
 // DRIVERS / USER MANAGEMENT
 // ============================================================
 async function loadDrivers() {
-  const el = document.getElementById('users-list-body');
+  const el = document.getElementById('drivers-list-body');
   if (!el) return;
   el.innerHTML = '<div style="padding:20px;color:var(--text3)">Loading...</div>';
 
   try {
-    const res = await fetch('/api/admin/users/list');
-    if (!res.ok) throw new Error('Failed to load users');
-    const { users } = await res.json();
+    const res = await fetch('/api/admin/drivers');
+    if (!res.ok) throw new Error('Failed to load drivers');
+    const { drivers } = await res.json();
 
-    if (!users || users.length === 0) {
-      el.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">No users found.</div>';
+    if (!drivers || drivers.length === 0) {
+      el.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">No drivers yet. Add one above.</div>';
       return;
     }
 
-    const roleColor = { admin: 'var(--red)', driver: 'var(--accent)', unknown: 'var(--text3)' };
-    el.innerHTML = users.map(u => {
-      const initials = (u.name || u.email || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-      const lastSeen = u.last_sign_in ? new Date(u.last_sign_in).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : 'Never';
-      const joined   = u.created_at  ? new Date(u.created_at).toLocaleDateString('en-AU',  {day:'numeric',month:'short',year:'numeric'}) : '—';
+    el.innerHTML = drivers.map(d => {
+      const initials = d.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const joined   = new Date(d.created_at).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'});
+      const statusColor = d.active ? 'var(--accent)' : 'var(--text3)';
       return `
         <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border)">
           <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text2);flex-shrink:0">${initials}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.name || '—'}</div>
-            <div style="font-size:12px;color:var(--text3)">${u.email}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px">Joined ${joined} · Last login ${lastSeen}</div>
+            <div style="font-size:13px;font-weight:600">${d.name}</div>
+            <div style="font-size:12px;color:var(--text3)">${d.vehicle || '—'} · ${d.phone || 'No phone'}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Added ${joined}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-            <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:${roleColor[u.role]||'var(--text3)'};background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px">${u.role}</span>
-            <div style="position:relative">
-              <button class="btn btn-sm btn-ghost" onclick="toggleUserMenu('${u.id}')" style="padding:4px 8px;font-size:11px">⋯</button>
-              <div id="menu-${u.id}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;min-width:160px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
-                <div style="padding:4px 0">
-                  <div onclick="sendPasswordReset('${u.id}','${u.email}')" style="padding:8px 14px;font-size:13px;cursor:pointer;color:var(--text2)" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">Send password reset</div>
-                  <div onclick="changeRole('${u.id}','${u.role}')" style="padding:8px 14px;font-size:13px;cursor:pointer;color:var(--text2)" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">Change role</div>
-                  <div style="border-top:1px solid var(--border);margin:4px 0"></div>
-                  <div onclick="removeUser('${u.id}','${u.email}')" style="padding:8px 14px;font-size:13px;cursor:pointer;color:var(--red)" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">Remove user</div>
-                </div>
-              </div>
-            </div>
+            <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:${statusColor};background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px">${d.active ? 'Active' : 'Inactive'}</span>
+            <button class="btn btn-sm btn-ghost" onclick="resetDriverPin('${d.id}','${d.name}')" style="font-size:11px">Reset PIN</button>
+            <button class="btn btn-sm btn-ghost" onclick="toggleDriverActive('${d.id}',${d.active},'${d.name}')" style="font-size:11px">${d.active ? 'Deactivate' : 'Activate'}</button>
+            <button class="btn btn-sm" onclick="removeDriver('${d.id}','${d.name}')" style="font-size:11px;background:rgba(224,82,82,0.1);color:var(--red);border-color:rgba(224,82,82,0.3)">Remove</button>
           </div>
         </div>`;
     }).join('');
   } catch(e) {
-    el.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">Error loading users: ${e.message}</div>`;
+    el.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">Error: ${e.message}</div>`;
   }
 }
 
-function toggleUserMenu(id) {
-  document.querySelectorAll('[id^="menu-"]').forEach(m => {
-    if (m.id !== 'menu-' + id) m.style.display = 'none';
-  });
-  const m = document.getElementById('menu-' + id);
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('[id^="menu-"]') && !e.target.closest('.btn')) {
-    document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
-  }
-});
+async function createDriver() {
+  const name    = document.getElementById('new-drv-name').value.trim();
+  const pin     = document.getElementById('new-drv-pin').value.trim();
+  const vehicle = document.getElementById('new-drv-vehicle').value.trim();
+  const phone   = document.getElementById('new-drv-phone').value.trim();
+  const btn     = document.getElementById('drv-invite-btn');
 
-async function inviteUser() {
-  const name  = document.getElementById('new-user-name').value.trim();
-  const email = document.getElementById('new-user-email').value.trim();
-  const pass  = document.getElementById('new-user-pass').value.trim();
-  const role  = document.getElementById('new-user-role').value;
-  const msgEl = document.getElementById('invite-msg');
-  const btn   = document.getElementById('invite-btn');
+  if (!name) { showDriverMsg('Name is required.', 'error'); return; }
+  if (!/^\d{4}$/.test(pin)) { showDriverMsg('PIN must be exactly 4 digits.', 'error'); return; }
 
-  if (!email) { showInviteMsg('Email is required.', 'error'); return; }
-  if (!pass || pass.length < 6) { showInviteMsg('Password must be at least 6 characters.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Adding...';
 
-  btn.disabled = true;
-  btn.textContent = 'Adding...';
-
-  const res = await fetch('/api/admin/users/invite', {
+  const res = await fetch('/api/admin/drivers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, name, password: pass, role }),
+    body: JSON.stringify({ name, pin, vehicle: vehicle || null, phone: phone || null }),
   });
   const data = await res.json();
+  btn.disabled = false; btn.textContent = '+ Add Driver';
 
-  btn.disabled = false;
-  btn.textContent = '+ Add User';
+  if (!res.ok) { showDriverMsg(data.error || 'Failed to add driver.', 'error'); return; }
 
-  if (!res.ok) { showInviteMsg(data.error || 'Failed to add user.', 'error'); return; }
-
-  showInviteMsg(`${role === 'driver' ? 'Driver' : 'Admin'} account created for ${email}. They can now log in.`, 'success');
-  document.getElementById('new-user-name').value  = '';
-  document.getElementById('new-user-email').value = '';
-  document.getElementById('new-user-pass').value  = '';
+  showDriverMsg(`${name} added. Their PIN is ${pin}.`, 'success');
+  document.getElementById('new-drv-name').value = '';
+  document.getElementById('new-drv-pin').value = '';
+  document.getElementById('new-drv-vehicle').value = '';
+  document.getElementById('new-drv-phone').value = '';
   loadDrivers();
 }
 
-function showInviteMsg(text, type) {
-  const el = document.getElementById('invite-msg');
+async function resetDriverPin(id, name) {
+  const newPin = prompt(`Enter new 4-digit PIN for ${name}:`);
+  if (!newPin) return;
+  if (!/^\d{4}$/.test(newPin)) { showToast('PIN must be 4 digits', 'error'); return; }
+  const res = await fetch(`/api/admin/drivers/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin: newPin }),
+  });
+  if (res.ok) showToast(`PIN updated for ${name}`, 'success');
+  else showToast('Failed to update PIN', 'error');
+}
+
+async function toggleDriverActive(id, active, name) {
+  const res = await fetch(`/api/admin/drivers/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ active: !active }),
+  });
+  if (res.ok) { showToast(`${name} ${active ? 'deactivated' : 'activated'}`, 'success'); loadDrivers(); }
+  else showToast('Failed to update driver', 'error');
+}
+
+async function removeDriver(id, name) {
+  if (!confirm(`Remove ${name}? They will lose access immediately.`)) return;
+  const res = await fetch(`/api/admin/drivers/${id}`, { method: 'DELETE' });
+  if (res.ok) { showToast(`${name} removed`, 'success'); loadDrivers(); }
+  else showToast('Failed to remove driver', 'error');
+}
+
+function showDriverMsg(text, type) {
+  const el = document.getElementById('drv-invite-msg');
   el.textContent = text;
   el.style.display = 'block';
   el.style.background = type === 'error' ? 'rgba(224,82,82,0.1)' : 'rgba(26,122,74,0.1)';
   el.style.color = type === 'error' ? 'var(--red)' : '#1A7A4A';
   el.style.border = `1px solid ${type === 'error' ? 'rgba(224,82,82,0.3)' : 'rgba(26,122,74,0.3)'}`;
-}
-
-async function sendPasswordReset(id, email) {
-  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
-  const res = await fetch(`/api/admin/users/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'reset_password' }),
-  });
-  if (res.ok) { showToast(`Password reset email sent to ${email}`, 'success'); }
-  else { showToast('Failed to send reset email', 'error'); }
-}
-
-async function changeRole(id, currentRole) {
-  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
-  const newRole = currentRole === 'driver' ? 'admin' : 'driver';
-  if (!confirm(`Change this user's role to ${newRole}?`)) return;
-  const res = await fetch(`/api/admin/users/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role: newRole }),
-  });
-  if (res.ok) { showToast(`Role changed to ${newRole}`, 'success'); loadDrivers(); }
-  else { showToast('Failed to change role', 'error'); }
-}
-
-async function removeUser(id, email) {
-  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
-  if (!confirm(`Remove ${email}? They will lose access immediately.`)) return;
-  const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
-  if (res.ok) { showToast(`${email} removed`, 'success'); loadDrivers(); }
-  else { showToast('Failed to remove user', 'error'); }
 }
 
 // ============================================================
@@ -2580,13 +2547,13 @@ async function loadDriversForAssignment() {
   const sel = document.getElementById('driver-assign-select');
   if (!sel) return;
   try {
-    const res = await fetch('/api/admin/users/list');
+    const res = await fetch('/api/admin/drivers');
     if (!res.ok) return;
-    const { users } = await res.json();
-    const drivers = (users || []).filter(u => u.role === 'driver' || u.role === 'admin');
-    if (drivers.length > 0) {
+    const { drivers } = await res.json();
+    const active = (drivers || []).filter(d => d.active);
+    if (active.length > 0) {
       sel.innerHTML = '<option value="">— Unassigned —</option>' +
-        drivers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
+        active.map(d => `<option value="${d.id}">${d.name}${d.vehicle ? ' · ' + d.vehicle : ''}</option>`).join('');
     }
   } catch(e) {}
 }

@@ -13,34 +13,23 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient }              from '@supabase/supabase-js';
+import { verifyDriverSession }       from '@/lib/driver-auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const MAX_SIG_BYTES = 500_000; // 500KB max for a finger-drawn PNG — generous upper bound
+const MAX_SIG_BYTES = 500_000;
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   // ── Auth ──────────────────────────────────
-  const token = req.headers.get('authorization')?.replace('Bearer ', '');
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile || !['admin', 'driver'].includes(profile.role)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  const token  = req.cookies.get('driver_token')?.value;
+  const driver = await verifyDriverSession(token);
+  if (!driver) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // ── Parse body ───────────────────────────
   const { type, signature } = await req.json();

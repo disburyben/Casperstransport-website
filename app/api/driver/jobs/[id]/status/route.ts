@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyDriverSession } from '@/lib/driver-auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,8 +11,11 @@ const supabase = createClient(
 const VALID_STATUSES = ['confirmed', 'in_transit', 'completed', 'cancelled'];
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const { status } = await req.json();
+  const token  = req.cookies.get('driver_token')?.value;
+  const driver = await verifyDriverSession(token);
+  if (!driver) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const { status } = await req.json();
   if (!status || !VALID_STATUSES.includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
   }

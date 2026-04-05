@@ -348,30 +348,14 @@ let JOBS = [];
 const state = {};
 
 async function logoutDriver() {
-  sessionStorage.removeItem('caspers_driver_token');
-  try {
-    const { createBrowserClient } = await import('https://esm.sh/@supabase/ssr@0.5.2');
-    const sb = createBrowserClient(
-      document.documentElement.dataset.supabaseUrl,
-      document.documentElement.dataset.supabaseAnon
-    );
-    await sb.auth.signOut();
-  } catch(e) {}
+  await fetch('/api/driver/logout', { method: 'POST' }).catch(() => {});
   window.location.href = '/driver/login';
-}
-
-// Auth token stored in sessionStorage after Supabase login
-// Set by app/driver/login — see /api/driver/auth
-function getAuthToken() {
-  return sessionStorage.getItem('caspers_driver_token') || '';
 }
 
 async function loadTodayJobs() {
   showDriverLoading(true);
   try {
-    const res = await fetch('/api/driver/jobs/today', {
-      headers: { 'Authorization': 'Bearer ' + getAuthToken() }
-    });
+    const res = await fetch('/api/driver/jobs/today');
     if (res.status === 401) {
       // Not logged in — redirect to driver login
       window.location.href = '/driver/login';
@@ -691,10 +675,7 @@ async function saveSignature() {
     // POST to API — saves to Supabase + regenerates PDF with sig embedded
     await fetch(`/api/driver/jobs/${curJob}/signature`,{
       method:'PATCH',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':'Bearer ' + getAuthToken(),
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({type:curType, signature:dataUrl}),
     }).catch(()=>{});
 
@@ -723,19 +704,8 @@ window.addEventListener('resize',()=>{
   if(document.getElementById('sig-modal').classList.contains('open')) resizeCvs();
 });
 
-// Boot: seed sessionStorage token from cookie session if missing, then load jobs
-(async () => {
-  if (!sessionStorage.getItem('caspers_driver_token')) {
-    try {
-      const res = await fetch('/api/driver/session');
-      if (res.ok) {
-        const { token } = await res.json();
-        if (token) sessionStorage.setItem('caspers_driver_token', token);
-      }
-    } catch(e) {}
-  }
-  await loadTodayJobs();
-})();
+// Boot — cookies handle auth automatically
+loadTodayJobs();
 </script>
 </body>
 </html>
