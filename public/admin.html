@@ -3903,12 +3903,16 @@ async function deleteCustomer(id, name, event) {
   if (!_confirmResult) return;
   try {
     const res = await fetch(`/api/admin/customers/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error((await res.json()).error);
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); msg = j.error || msg; } catch {}
+      throw new Error(msg);
+    }
     showToast(`${name} deleted`, 'success');
     await loadBookings();
     await loadCustomers();
   } catch(e) {
-    showToast(e.message, 'error');
+    showToast('Delete failed: ' + e.message, 'error');
   }
 }
 </script>

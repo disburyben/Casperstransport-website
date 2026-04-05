@@ -30,8 +30,12 @@ export async function DELETE(req: NextRequest) {
 
   // Delete child records first (FK constraints)
   await supabase.from('comms_log').delete().eq('booking_id', id);
+  await supabase.from('calendar_blocks').delete().eq('booking_id', id);
   await supabase.from('quotes').delete().eq('booking_id', id);
   await supabase.from('bikes').delete().eq('booking_id', id);
+
+  // Clear self-referential linked_booking_id to avoid FK conflict
+  await supabase.from('bookings').update({ linked_booking_id: null }).eq('id', id);
 
   const { error } = await supabase.from('bookings').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

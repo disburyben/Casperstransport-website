@@ -52,26 +52,37 @@ export async function DELETE(
   if (!await requireAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // Get all booking IDs for this customer
-  const { data: bookings } = await supabase
+  const { data: bookings, error: bErr } = await supabase
     .from('bookings')
     .select('id')
     .eq('customer_id', params.id);
 
-  const bookingIds = (bookings || []).map(b => b.id);
+  if (bErr) return NextResponse.json({ error: 'Failed to fetch bookings: ' + bErr.message }, { status: 500 });
 
-  // Delete all child records for each booking
-  for (const bkId of bookingIds) {
-    await supabase.from('comms_log').delete().eq('booking_id', bkId);
-    await supabase.from('quotes').delete().eq('booking_id', bkId);
-    await supabase.from('bikes').delete().eq('booking_id', bkId);
-  }
+  const bookingIds = (bookings || []).map((b: any) => b.id);
 
   if (bookingIds.length > 0) {
-    await supabase.from('bookings').delete().in('id', bookingIds);
+    // Delete child records first (FK constraints) — cascade handles bikes/quotes/comms_log
+    // but we do it explicitly to avoid any constraint ordering issues
+    for (const bkId of bookingIds) {
+      await supabase.from('comms_log').delete().eq('booking_id', bkId);
+      await supabase.from('calendar_blocks').delete().eq('booking_id', bkId);
+      await supabase.from('quotes').delete().eq('booking_id', bkId);
+      await supabase.from('bikes').delete().eq('booking_id', bkId);
+    }
+
+    // Clear self-referential linked_booking_id before deleting
+    await supabase
+      .from('bookings')
+      .update({ linked_booking_id: null })
+      .in('id', bookingIds);
+
+    const { error: delBErr } = await supabase.from('bookings').delete().in('id', bookingIds);
+    if (delBErr) return NextResponse.json({ error: 'Failed to delete bookings: ' + delBErr.message }, { status: 500 });
   }
 
   const { error } = await supabase.from('customers').delete().eq('id', params.id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: 'Failed to delete customer: ' + error.message }, { status: 500 });
 
   return NextResponse.json({ success: true });
 }
