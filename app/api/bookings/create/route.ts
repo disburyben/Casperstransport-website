@@ -256,7 +256,7 @@ function buildAdminNotificationEmail({ name, email, phone, bikesSummary,
   pickup_address, dropoff_address, pickup_date, quoteTotal, payment_method,
   bookingId, notes }: any) {
 
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin/bookings/${bookingId}`;
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin`;
 
   return `
     <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;">
