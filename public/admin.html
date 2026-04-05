@@ -3898,11 +3898,15 @@ async function saveCustomer(id, event) {
 }
 
 async function deleteCustomer(id, name, event) {
-  event.stopPropagation();
+  if (event) event.stopPropagation();
+  showToast('DBG1: confirm opening…', 'error');
   await showConfirm('Delete customer?', `This removes ${name} and every booking, invoice, and email for this person. Cannot be undone.`, 'Delete');
+  showToast('DBG2: confirmed=' + _confirmResult, 'error');
   if (!_confirmResult) return;
+  showToast('DBG3: calling API…', 'error');
   try {
     const res = await fetch(`/api/admin/customers/${id}`, { method: 'DELETE' });
+    showToast('DBG4: status=' + res.status, 'error');
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
       try { const j = await res.json(); msg = j.error || msg; } catch {}
