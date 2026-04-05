@@ -493,6 +493,109 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+
+/* ════════════════════════════════════════
+   MOBILE — max 768px
+   Desktop layout unchanged above this
+════════════════════════════════════════ */
+#mobile-nav{display:none}
+
+@media(max-width:768px){
+  html,body{overflow:hidden;font-size:13px}
+
+  /* Kill sidebar, make shell vertical */
+  .shell{flex-direction:column}
+  .sidebar{display:none}
+
+  /* Main fills full screen */
+  .main{width:100%;height:100vh;overflow:hidden}
+
+  /* Topbar — tighter on mobile */
+  .topbar{padding:0 14px;height:46px;gap:8px}
+  .page-title{font-size:16px}
+  .topbar-actions{gap:6px}
+  .topbar-actions > span{display:none} /* hide date text */
+  #current-date{display:none}
+  .btn-sm{padding:5px 9px;font-size:12px}
+
+  /* Content — extra bottom pad for nav bar */
+  .content{padding:14px 14px 80px;overflow-y:auto}
+
+  /* Metrics: 2×2 grid */
+  .metrics{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .metric{padding:12px 14px}
+  .metric-value{font-size:22px}
+
+  /* Today grid — single column */
+  .today-grid{grid-template-columns:1fr}
+
+  /* Week strip — horizontally scrollable */
+  .week-strip{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .week-days{
+    grid-template-columns:repeat(7,minmax(90px,1fr));
+    width:max-content;min-width:100%;
+  }
+
+  /* Bookings table — hide middle cols, keep Customer/Date/Status/Payment */
+  .filter-bar{flex-direction:column;align-items:flex-start;gap:8px}
+  .status-tabs{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .search-input{max-width:100%;width:100%}
+  #bookings-table thead th:nth-child(3),
+  #bookings-table thead th:nth-child(4),
+  #bookings-table thead th:nth-child(5){display:none}
+  #bookings-table tbody td:nth-child(3),
+  #bookings-table tbody td:nth-child(4),
+  #bookings-table tbody td:nth-child(5){display:none}
+
+  /* Invoices table — hide Bike/Balance, keep Invoice/Customer/Total/Status/Actions */
+  #invoices-table thead th:nth-child(4),
+  #invoices-table thead th:nth-child(6){display:none}
+  #invoices-table tbody td:nth-child(4),
+  #invoices-table tbody td:nth-child(6){display:none}
+  #invoices-table{font-size:11px}
+  #invoices-table .btn-sm{padding:4px 7px;font-size:11px}
+  tbody td{padding:9px 10px;font-size:12px}
+  thead th{padding:8px 10px}
+
+  /* Detail view — single column */
+  .detail-layout{grid-template-columns:1fr;gap:12px}
+
+  /* Detail top bar — stack status select */
+  #view-detail > div:first-child{flex-wrap:wrap;gap:8px}
+  #view-detail > div:first-child > div:last-child{margin-left:0;width:100%;justify-content:flex-start}
+
+  /* Rate card — single column */
+  #view-ratecards .info-grid{grid-template-columns:1fr!important}
+  #rc-preview > div{grid-template-columns:1fr!important}
+
+  /* Driver form — single column */
+  #view-drivers > div > .detail-card .detail-card-body > div:first-child{grid-template-columns:1fr!important}
+
+  /* New booking modal — full screen */
+  .nb-overlay{align-items:flex-end}
+  .nb-sheet{max-width:100%;width:100%;border-radius:14px 14px 0 0;max-height:92vh}
+  .nb-row.cols-2{grid-template-columns:1fr!important}
+
+  /* Quick-add modal if present */
+  .qa-overlay{align-items:flex-end}
+  .qa-sheet{max-width:100%;width:100%;border-radius:14px 14px 0 0}
+
+  /* Mobile bottom nav */
+  #mobile-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;
+    background:var(--bg2);border-top:1px solid var(--border);
+    height:60px;
+  }
+  .mob-nav-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;cursor:pointer;color:var(--text3);transition:color 0.15s;
+    border:none;background:none;padding:0;font-family:var(--font-body);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mob-nav-item svg{width:20px;height:20px}
+  .mob-nav-item span{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+  .mob-nav-item.active{color:var(--red)}
+}
 </style>
 </head>
 <body>
@@ -533,6 +636,11 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
       <button class="nav-item" onclick="showView('drivers',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
         Drivers
+      </button>
+      <button class="nav-item" onclick="showView('invoices',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="12" height="14" rx="1"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8" y2="11"/></svg>
+        Invoices
+        <span class="nav-badge" id="nb-overdue" style="display:none;background:#D4880A">0</span>
       </button>
 
       <div class="nav-section">Settings</div>
@@ -997,11 +1105,97 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
         </div>
       </div><!-- /view-drivers -->
 
+      <!-- ══════════════════════════════════════
+           VIEW: INVOICES
+      ══════════════════════════════════════ -->
+      <div class="view" id="view-invoices">
+
+        <!-- Summary strip -->
+        <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+          <div class="metric">
+            <div class="metric-label">Outstanding</div>
+            <div class="metric-value" id="inv-m-outstanding">—</div>
+            <div class="metric-sub" id="inv-m-outstanding-amt"></div>
+          </div>
+          <div class="metric" style="border-color:rgba(212,136,10,0.4)">
+            <div class="metric-label" style="color:var(--amber)">Overdue (7+ days)</div>
+            <div class="metric-value" id="inv-m-overdue" style="color:var(--amber)">—</div>
+            <div class="metric-sub" id="inv-m-overdue-amt"></div>
+          </div>
+          <div class="metric" style="border-color:rgba(46,158,91,0.4)">
+            <div class="metric-label" style="color:var(--green)">Paid</div>
+            <div class="metric-value" id="inv-m-paid" style="color:var(--green)">—</div>
+            <div class="metric-sub">this calendar year</div>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="filter-bar" style="margin-bottom:14px">
+          <div class="status-tabs">
+            <button class="status-tab active" onclick="filterInvoices('all',this)">All</button>
+            <button class="status-tab" onclick="filterInvoices('not_sent',this)">Not Sent</button>
+            <button class="status-tab" onclick="filterInvoices('outstanding',this)">Outstanding</button>
+            <button class="status-tab" onclick="filterInvoices('overdue',this)">Overdue</button>
+            <button class="status-tab" onclick="filterInvoices('paid',this)">Paid</button>
+          </div>
+          <button class="btn btn-sm btn-ghost" onclick="loadInvoices()">Refresh</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="invoices-table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Job Date</th>
+                <th>Bike</th>
+                <th>Total</th>
+                <th>Balance Due</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div><!-- /view-invoices -->
+
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /shell -->
 
 <div class="toast" id="toast"></div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav id="mobile-nav">
+  <button class="mob-nav-item active" id="mob-nav-overview" onclick="mobNav('overview',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+    <span>Overview</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-bookings" onclick="mobNav('bookings',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="2" x2="5" y2="6"/><line x1="11" y1="2" x2="11" y2="6"/></svg>
+    <span>Bookings</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-calendar" onclick="mobNav('calendar',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>
+    <span>Calendar</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-drivers" onclick="mobNav('drivers',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+    <span>Drivers</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-invoices" onclick="mobNav('invoices',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="12" height="14" rx="1"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8" y2="11"/></svg>
+    <span>Invoices</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-ratecards" onclick="mobNav('ratecards',this)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+    <span>Settings</span>
+  </button>
+</nav>
 
 <!-- ══════════════════════════════════════
      NEW BOOKING MODAL
@@ -1608,13 +1802,27 @@ function showView(viewId, navEl){
   document.getElementById('view-'+viewId).classList.add('active');
   if(navEl) navEl.classList.add('active');
 
-  const titles={overview:'Overview',bookings:'All Bookings',detail:'Job Detail',calendar:'Calendar',ratecards:'Rate Card',drivers:'Drivers'};
+  // Sync mobile nav active state
+  document.querySelectorAll('.mob-nav-item').forEach(n=>n.classList.remove('active'));
+  const mobBtn=document.getElementById('mob-nav-'+viewId);
+  if(mobBtn) mobBtn.classList.add('active');
+
+  const titles={overview:'Overview',bookings:'All Bookings',detail:'Job Detail',calendar:'Calendar',ratecards:'Rate Card',drivers:'Drivers',invoices:'Invoices'};
   document.getElementById('page-title').textContent=titles[viewId]||viewId;
 
   if(viewId==='bookings')   renderBookingsTable();
   if(viewId==='calendar')   renderCalendar();
   if(viewId==='drivers')    loadDrivers();
   if(viewId==='overview')   renderWeekStrip();
+  if(viewId==='invoices')   loadInvoices();
+}
+
+function mobNav(viewId, el){
+  // Map viewId to corresponding sidebar nav-item (by index) for active highlight
+  const sidebarMap={overview:0,bookings:1,calendar:2,drivers:3,invoices:4,ratecards:5};
+  const idx=sidebarMap[viewId];
+  const sidebarNavItem=document.querySelectorAll('.nav-item')[idx]||null;
+  showView(viewId, sidebarNavItem);
 }
 
 function openJobDetail(id){
@@ -2592,6 +2800,172 @@ initCalendar();
   renderWeekStrip();
   renderCalendar();
 })();
+
+// ============================================================
+// INVOICES
+// ============================================================
+let _invoices = [];
+let _invFilter = 'all';
+
+async function loadInvoices() {
+  document.getElementById('invoices-tbody').innerHTML =
+    '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3)">Loading...</td></tr>';
+  try {
+    const res  = await fetch('/api/admin/invoices');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    _invoices = data.invoices || [];
+    renderInvoiceMetrics();
+    renderInvoicesTable();
+  } catch(e) {
+    document.getElementById('invoices-tbody').innerHTML =
+      `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+function renderInvoiceMetrics() {
+  const outstanding = _invoices.filter(i => i.payStatus === 'outstanding');
+  const overdue     = _invoices.filter(i => i.payStatus === 'overdue');
+  const paid        = _invoices.filter(i => i.payStatus === 'paid');
+  const sumAmt      = arr => arr.reduce((s,i) => s + parseFloat(i.balance), 0);
+
+  document.getElementById('inv-m-outstanding').textContent     = outstanding.length;
+  document.getElementById('inv-m-outstanding-amt').textContent = outstanding.length ? `A$${sumAmt(outstanding).toFixed(2)} outstanding` : 'all clear';
+  document.getElementById('inv-m-overdue').textContent         = overdue.length;
+  document.getElementById('inv-m-overdue-amt').textContent     = overdue.length ? `A$${sumAmt(overdue).toFixed(2)} overdue` : '';
+  document.getElementById('inv-m-paid').textContent            = paid.length;
+
+  // Badge on sidebar nav
+  const badge = document.getElementById('nb-overdue');
+  badge.textContent = overdue.length;
+  badge.style.display = overdue.length ? '' : 'none';
+}
+
+function filterInvoices(filter, el) {
+  _invFilter = filter;
+  document.querySelectorAll('#view-invoices .status-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderInvoicesTable();
+}
+
+function renderInvoicesTable() {
+  const list = _invFilter === 'all' ? _invoices : _invoices.filter(i => i.payStatus === _invFilter);
+  const tbody = document.getElementById('invoices-tbody');
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3)">No invoices match this filter.</td></tr>';
+    return;
+  }
+
+  const statusCfg = {
+    not_sent:    { label:'Not Sent',    cls:'badge-pending',    dot:'#D4880A' },
+    outstanding: { label:'Outstanding', cls:'badge-quote_sent', dot:'#7B5EA7' },
+    overdue:     { label:'Overdue',     cls:'badge-cancelled',  dot:'#D4880A' },
+    paid:        { label:'Paid',        cls:'badge-confirmed',  dot:'#2E9E5B' },
+  };
+
+  tbody.innerHTML = list.map(inv => {
+    const cfg    = statusCfg[inv.payStatus] || statusCfg['outstanding'];
+    const jobDate = new Date(inv.pickupDate + 'T12:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+    const sentInfo = inv.invoiceSentAt
+      ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">Sent ${fmtDate(inv.invoiceSentAt)}</div>` : '';
+    const reminderInfo = inv.lastReminderAt
+      ? `<div style="font-size:10px;color:var(--amber);margin-top:1px">Reminder ${inv.reminderCount > 1 ? inv.reminderCount+'×' : ''} ${fmtDate(inv.lastReminderAt)}</div>` : '';
+    const paidInfo = inv.invoicePaidAt
+      ? `<div style="font-size:11px;color:var(--green);margin-top:2px">Paid ${fmtDate(inv.invoicePaidAt)}</div>` : '';
+
+    const overdueTag = inv.payStatus === 'overdue'
+      ? `<span style="font-size:10px;color:var(--amber);margin-left:6px">${inv.daysOverdue}d</span>` : '';
+
+    // Action buttons
+    let actions = '';
+    if (inv.payStatus === 'not_sent') {
+      actions = `<button class="btn btn-sm btn-primary" onclick="invSend('${inv.id}',this)">Send Invoice</button>`;
+    } else if (inv.payStatus === 'outstanding' || inv.payStatus === 'overdue') {
+      actions = `
+        <button class="btn btn-sm" style="margin-bottom:4px" onclick="invReminder('${inv.id}',this)">Send Reminder</button>
+        <button class="btn btn-sm btn-ghost" onclick="invMarkPaid('${inv.id}',true,this)">Mark Paid</button>`;
+    } else if (inv.payStatus === 'paid') {
+      actions = `<button class="btn btn-sm btn-ghost" onclick="invMarkPaid('${inv.id}',false,this)" style="color:var(--text3)">Undo Paid</button>`;
+    }
+
+    return `<tr>
+      <td class="bold" style="font-size:12px;white-space:nowrap">${inv.invoiceNum}</td>
+      <td>
+        <div class="bold">${inv.customer?.name || '—'}</div>
+        <div class="sub">${inv.customer?.email || ''}</div>
+      </td>
+      <td>${jobDate}</td>
+      <td style="font-size:12px">${inv.bikeName}</td>
+      <td class="bold">A$${inv.total}</td>
+      <td>
+        <div class="bold" style="color:${inv.payStatus==='paid'?'var(--green)':inv.payStatus==='overdue'?'var(--amber)':'var(--text)'}">${inv.payStatus==='paid'?'—':'A$'+inv.balance}</div>
+      </td>
+      <td>
+        <span class="badge ${cfg.cls}">${cfg.label}${overdueTag}</span>
+        ${sentInfo}${reminderInfo}${paidInfo}
+      </td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">${actions}</div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function invSend(bookingId, btn) {
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('/api/admin/invoices/send', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ bookingId }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    showToast(`Invoice ${d.invoiceNum} sent`, 'success');
+    await loadInvoices();
+  } catch(e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Send Invoice';
+  }
+}
+
+async function invReminder(bookingId, btn) {
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('/api/admin/invoices/reminder', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ bookingId }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    showToast('Reminder sent', 'success');
+    await loadInvoices();
+  } catch(e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Send Reminder';
+  }
+}
+
+async function invMarkPaid(bookingId, paid, btn) {
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/invoices/mark-paid', {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ bookingId, paid }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    showToast(paid ? 'Marked as paid' : 'Marked as unpaid', 'success');
+    await loadInvoices();
+  } catch(e) {
+    showToast(e.message, 'error');
+    btn.disabled = false;
+  }
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-AU', {day:'numeric',month:'short'});
+}
 </script>
 </body>
 </html>
