@@ -24,12 +24,13 @@ export function buildInvoiceEmail({
     day: 'numeric', month: 'long', year: 'numeric',
   });
 
-  const base   = parseFloat(quote.base_rate          || 120).toFixed(2);
-  const kmCost = (parseFloat(quote.km_loaded || 0) * parseFloat(quote.km_rate_loaded || 0)).toFixed(2);
-  const condS  = parseFloat(quote.condition_surcharge || 0).toFixed(2);
-  const disc   = parseFloat(quote.multi_bike_discount || 0).toFixed(2);
-  const fuel   = parseFloat(quote.fuel_levy_amount    || 0).toFixed(2);
-  const calculated = parseFloat(base) + parseFloat(kmCost) + parseFloat(condS) - parseFloat(disc) + parseFloat(fuel);
+  const base      = parseFloat(quote.base_rate          || 120).toFixed(2);
+  const kmCost    = (parseFloat(quote.km_loaded || 0) * parseFloat(quote.km_rate_loaded || 0)).toFixed(2);
+  const kmReturn  = (parseFloat(quote.km_return || 0) * parseFloat(quote.km_rate_return || 0)).toFixed(2);
+  const condS     = parseFloat(quote.condition_surcharge || 0).toFixed(2);
+  const disc      = parseFloat(quote.multi_bike_discount || 0).toFixed(2);
+  const fuel      = parseFloat(quote.fuel_levy_amount    || 0).toFixed(2);
+  const calculated = parseFloat(base) + parseFloat(kmCost) + parseFloat(kmReturn) + parseFloat(condS) - parseFloat(disc) + parseFloat(fuel);
   const total   = (parseFloat(quote.total_aud) > 0 ? parseFloat(quote.total_aud) : calculated).toFixed(2);
   const deposit = booking.deposit_paid ? (parseFloat(total) * 0.2).toFixed(2) : '0.00';
   const balance = (parseFloat(total) - parseFloat(deposit)).toFixed(2);
@@ -85,6 +86,10 @@ export function buildInvoiceEmail({
               <td style="padding:10px 0;border-bottom:1px solid #EEEEEC;">Transport — loaded run${booking.distance_km ? ` <span style="font-size:12px;color:#898880;">(${booking.distance_km} km)</span>` : ''}</td>
               <td style="text-align:right;padding:10px 0;border-bottom:1px solid #EEEEEC;">A$${kmCost}</td>
             </tr>
+            ${parseFloat(kmReturn) > 0 ? `<tr>
+              <td style="padding:10px 0;border-bottom:1px solid #EEEEEC;">Return run${booking.return_km ? ` <span style="font-size:12px;color:#898880;">(${booking.return_km} km)</span>` : ''}</td>
+              <td style="text-align:right;padding:10px 0;border-bottom:1px solid #EEEEEC;">A$${kmReturn}</td>
+            </tr>` : ''}
             ${parseFloat(condS) > 0 ? `<tr><td style="padding:10px 0;border-bottom:1px solid #EEEEEC;">Condition surcharge</td><td style="text-align:right;padding:10px 0;border-bottom:1px solid #EEEEEC;">A$${condS}</td></tr>` : ''}
             ${parseFloat(disc)  > 0 ? `<tr><td style="padding:10px 0;border-bottom:1px solid #EEEEEC;">Multi-bike discount</td><td style="text-align:right;padding:10px 0;border-bottom:1px solid #EEEEEC;color:#1A7A4A;">−A$${disc}</td></tr>` : ''}
             ${parseFloat(fuel)  > 0 ? `<tr><td style="padding:10px 0;border-bottom:1px solid #EEEEEC;">Fuel levy</td><td style="text-align:right;padding:10px 0;border-bottom:1px solid #EEEEEC;">A$${fuel}</td></tr>` : ''}
