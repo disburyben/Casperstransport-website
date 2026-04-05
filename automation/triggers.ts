@@ -43,6 +43,6 @@ export const BOOKING_QUERY = `
     total_aud, version, accepted_at,
     base_rate, km_loaded, km_rate_loaded,
     condition_surcharge, multi_bike_discount,
-    fuel_levy_amount, stripe_deposit_pct
+    fuel_levy_amount
   )
 `;
