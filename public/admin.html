@@ -3505,11 +3505,11 @@ function renderAnalytics(d) {
       completed:'#2E9E5B', confirmed:'#4FC1DB', in_transit:'#2A7FD4',
       pending_quote:'#D4880A', quote_sent:'#7B5EA7', cancelled:'#E05252',
     };
-    const total = Object.values(d.byStatus).reduce((a,b)=>(a as number)+(b as number),0) as number || 1;
+    const total = Object.values(d.byStatus).reduce((a,b)=>a+b, 0) || 1;
     statusEl.innerHTML = Object.entries(d.byStatus)
-      .sort((a,b)=>(b[1] as number)-(a[1] as number))
+      .sort((a,b)=>b[1]-a[1])
       .map(([s,cnt]) => {
-        const pct = Math.round(((cnt as number) / total) * 100);
+        const pct = Math.round((cnt / total) * 100);
         const color = statusColors[s] || '#5C5C58';
         const label = s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
         return `
