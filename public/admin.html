@@ -3884,9 +3884,9 @@ async function saveCustomer(id, event) {
   const phone = document.getElementById('cust-edit-phone-' + id)?.value.trim();
   if (!name) { showToast('Name cannot be empty', 'error'); return; }
   try {
-    const res = await fetch(`/api/admin/customers/${id}`, {
+    const res = await fetch('/api/admin/customers', {
       method: 'PATCH', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name, email, phone }),
+      body: JSON.stringify({ id, name, email, phone }),
     });
     if (!res.ok) throw new Error((await res.json()).error);
     showToast('Customer updated', 'success');
@@ -3899,14 +3899,14 @@ async function saveCustomer(id, event) {
 
 async function deleteCustomer(id, name, event) {
   if (event) event.stopPropagation();
-  showToast('DBG1: confirm opening…', 'error');
   await showConfirm('Delete customer?', `This removes ${name} and every booking, invoice, and email for this person. Cannot be undone.`, 'Delete');
-  showToast('DBG2: confirmed=' + _confirmResult, 'error');
   if (!_confirmResult) return;
-  showToast('DBG3: calling API…', 'error');
   try {
-    const res = await fetch(`/api/admin/customers/${id}`, { method: 'DELETE' });
-    showToast('DBG4: status=' + res.status, 'error');
+    const res = await fetch('/api/admin/customers', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
       try { const j = await res.json(); msg = j.error || msg; } catch {}

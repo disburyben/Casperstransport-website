@@ -71,3 +71,40 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(result);
 }
+
+// DELETE /api/admin/customers  { id }
+export async function DELETE(req: NextRequest) {
+  if (!await requireAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { id } = await req.json();
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  // ON DELETE CASCADE handles bookings → bikes/quotes/comms_log/calendar_blocks
+  const { error } = await supabase.from('customers').delete().eq('id', id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ success: true });
+}
+
+// PATCH /api/admin/customers  { id, name, email, phone }
+export async function PATCH(req: NextRequest) {
+  if (!await requireAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { id, name, email, phone } = await req.json();
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  const updates: Record<string, string> = {};
+  if (name  !== undefined) updates.name  = name;
+  if (email !== undefined) updates.email = email;
+  if (phone !== undefined) updates.phone = phone;
+
+  const { data, error } = await supabase
+    .from('customers')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
+}
