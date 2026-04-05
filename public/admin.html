@@ -1342,6 +1342,25 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
         </div>
       </div><!-- /view-documents -->
 
+      <!-- Confirm modal -->
+      <div class="confirm-overlay" id="confirm-overlay">
+        <div class="confirm-box">
+          <div class="confirm-icon danger">
+            <svg viewBox="0 0 20 20" fill="none" stroke="#E05252" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 2L2 17h16L10 2z"/>
+              <line x1="10" y1="9" x2="10" y2="12"/>
+              <circle cx="10" cy="15" r="0.5" fill="#E05252"/>
+            </svg>
+          </div>
+          <div class="confirm-title" id="confirm-title">Are you sure?</div>
+          <div class="confirm-msg" id="confirm-msg"></div>
+          <div class="confirm-actions">
+            <button class="btn" onclick="confirmCancel()">Cancel</button>
+            <button class="btn" id="confirm-ok-btn" style="background:#E05252;border-color:#E05252;color:white" onclick="confirmOk()">Delete</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Signature viewer modal -->
       <div class="sig-modal-overlay" id="sig-modal-overlay" onclick="closeSigModal(event)">
         <div class="sig-modal">
@@ -1824,6 +1843,31 @@ select.nb-input{appearance:none}
 }
 .sig-ok  {color:var(--green)}
 .sig-none{color:var(--text3)}
+
+/* ── CONFIRM MODAL ── */
+.confirm-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);
+  z-index:600;align-items:center;justify-content:center;
+}
+.confirm-overlay.open{display:flex}
+.confirm-box{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:28px 28px 22px;
+  max-width:380px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.5);
+}
+.confirm-icon{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;flex-shrink:0;
+}
+.confirm-icon.danger{background:rgba(224,82,82,0.15)}
+.confirm-icon svg{width:20px;height:20px}
+.confirm-title{
+  font-family:var(--font-disp);font-size:17px;font-weight:700;
+  color:var(--text);margin-bottom:8px;
+}
+.confirm-msg{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:22px}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
 
 /* Sig modal */
 .sig-modal-overlay{
@@ -2660,7 +2704,8 @@ async function toggleDriverActive(id, active, name) {
 }
 
 async function removeDriver(id, name) {
-  if (!confirm(`Remove ${name}? They will lose access immediately.`)) return;
+  await showConfirm('Remove driver?', `${name} will lose access immediately.`, 'Remove');
+  if (!_confirmResult) return;
   const res = await fetch(`/api/admin/drivers/${id}`, { method: 'DELETE' });
   if (res.ok) { showToast(`${name} removed`, 'success'); loadDrivers(); }
   else showToast('Failed to remove driver', 'error');
@@ -3774,12 +3819,48 @@ function closeSigModal(event) {
 }
 
 // ============================================================
+// CUSTOM CONFIRM MODAL
+// ============================================================
+let _confirmResult = false;
+let _confirmResolve = null;
+
+function showConfirm(title, msg, okLabel = 'Delete') {
+  return new Promise(resolve => {
+    _confirmResolve = resolve;
+    _confirmResult  = false;
+    document.getElementById('confirm-title').textContent   = title;
+    document.getElementById('confirm-msg').textContent     = msg;
+    document.getElementById('confirm-ok-btn').textContent  = okLabel;
+    document.getElementById('confirm-overlay').classList.add('open');
+  });
+}
+
+function confirmOk() {
+  _confirmResult = true;
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+}
+
+function confirmCancel() {
+  _confirmResult = false;
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+}
+
+// Close on backdrop click
+document.addEventListener('click', e => {
+  const overlay = document.getElementById('confirm-overlay');
+  if (overlay && e.target === overlay) confirmCancel();
+});
+
+// ============================================================
 // DELETE / EDIT HELPERS
 // ============================================================
 
 async function deleteBooking(id, customerName, event) {
   if (event) event.stopPropagation();
-  if (!confirm(`Delete this booking for ${customerName}?\n\nThis permanently removes the booking, quotes, bikes, and all emails. Cannot be undone.`)) return;
+  await showConfirm('Delete booking?', `This permanently removes the booking for ${customerName}, including all quotes, bikes, and emails. Cannot be undone.`, 'Delete');
+  if (!_confirmResult) return;
   try {
     const res = await fetch('/api/admin/bookings', {
       method: 'DELETE', headers: {'Content-Type':'application/json'},
@@ -3818,7 +3899,8 @@ async function saveCustomer(id, event) {
 
 async function deleteCustomer(id, name, event) {
   event.stopPropagation();
-  if (!confirm(`Delete ${name} and ALL their bookings?\n\nThis removes the customer, every booking, all invoices, and all emails for this person. Cannot be undone.`)) return;
+  await showConfirm('Delete customer?', `This removes ${name} and every booking, invoice, and email for this person. Cannot be undone.`, 'Delete');
+  if (!_confirmResult) return;
   try {
     const res = await fetch(`/api/admin/customers/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error((await res.json()).error);
