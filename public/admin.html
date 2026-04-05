@@ -557,6 +557,7 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
       <div class="page-title" id="page-title">Overview</div>
       <div class="topbar-actions">
         <span style="font-size:12px;color:var(--text3)" id="current-date"></span>
+        <button class="btn btn-sm" style="background:#c0392b;color:white;border:none" onclick="openQuickAdd()">&#9889; Quick Add</button>
         <button class="btn btn-primary btn-sm" onclick="openNewBooking()">+ New Booking</button>
       </div>
     </div>
@@ -731,6 +732,45 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
 
         <div style="max-width:640px">
 
+          <!-- Rate Card Quick Reference Preview -->
+          <div id="rc-preview" style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-bottom:12px">Quick Reference — Current Rates</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--border);padding-bottom:6px">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Base call-out</span>
+                <span id="rcp-base" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--text)">A$120.00</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--border);padding-bottom:6px">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Per km (loaded)</span>
+                <span id="rcp-km-loaded" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--text)">A$2.20/km</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--border);padding-bottom:6px">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Per km (return)</span>
+                <span id="rcp-km-return" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--text)">A$1.10/km</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--border);padding-bottom:6px">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Multi-bike discount</span>
+                <span id="rcp-multi" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--green)">20%</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--border);padding-bottom:6px">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Non-runner</span>
+                <span id="rcp-non-runner" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--amber)">+A$50</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--border);padding-bottom:6px">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Broken / seized</span>
+                <span id="rcp-seized" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--amber)">+A$80</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Stripped / pieces</span>
+                <span id="rcp-stripped" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--amber)">+A$100</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3)">Fuel levy</span>
+                <span id="rcp-fuel" style="font-family:var(--font-disp);font-size:16px;font-weight:700;color:var(--text3)">Off</span>
+              </div>
+            </div>
+          </div>
+
           <div class="detail-card">
             <div class="detail-card-header">
               <div class="detail-card-title">Base Rates</div>
@@ -742,27 +782,27 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
                   <div class="info-label">Base call-out fee</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
                     <span style="font-size:13px;color:var(--text2)">A$</span>
-                    <input type="number" class="rc-input" id="rc-base" value="120.00" step="5">
+                    <input type="number" class="rc-input" id="rc-base" value="120.00" step="5" oninput="updateRcPreview()">
                   </div>
                 </div>
                 <div class="field-rc">
                   <div class="info-label">Per km — loaded</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
                     <span style="font-size:13px;color:var(--text2)">A$</span>
-                    <input type="number" class="rc-input" id="rc-km-loaded" value="2.20" step="0.05">
+                    <input type="number" class="rc-input" id="rc-km-loaded" value="2.20" step="0.05" oninput="updateRcPreview()">
                   </div>
                 </div>
                 <div class="field-rc">
                   <div class="info-label">Per km — return run</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
                     <span style="font-size:13px;color:var(--text2)">A$</span>
-                    <input type="number" class="rc-input" id="rc-km-return" value="1.10" step="0.05">
+                    <input type="number" class="rc-input" id="rc-km-return" value="1.10" step="0.05" oninput="updateRcPreview()">
                   </div>
                 </div>
                 <div class="field-rc">
                   <div class="info-label">Multi-bike discount</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-                    <input type="number" class="rc-input" id="rc-multi" value="20" step="5">
+                    <input type="number" class="rc-input" id="rc-multi" value="20" step="5" oninput="updateRcPreview()">
                     <span style="font-size:13px;color:var(--text2)">%</span>
                   </div>
                 </div>
@@ -780,28 +820,28 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
                   <div class="info-label">Non-runner</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
                     <span style="font-size:13px;color:var(--text2)">A$</span>
-                    <input type="number" class="rc-input" id="rc-non-runner" value="50" step="10">
+                    <input type="number" class="rc-input" id="rc-non-runner" value="50" step="10" oninput="updateRcPreview()">
                   </div>
                 </div>
                 <div class="field-rc">
                   <div class="info-label">Broken / Seized</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
                     <span style="font-size:13px;color:var(--text2)">A$</span>
-                    <input type="number" class="rc-input" id="rc-seized" value="80" step="10">
+                    <input type="number" class="rc-input" id="rc-seized" value="80" step="10" oninput="updateRcPreview()">
                   </div>
                 </div>
                 <div class="field-rc">
                   <div class="info-label">Stripped / In pieces</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
                     <span style="font-size:13px;color:var(--text2)">A$</span>
-                    <input type="number" class="rc-input" id="rc-stripped" value="100" step="10">
+                    <input type="number" class="rc-input" id="rc-stripped" value="100" step="10" oninput="updateRcPreview()">
                   </div>
                 </div>
                 <div class="field-rc">
                   <div class="info-label">Custom / Part-built</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
                     <span style="font-size:13px;color:var(--text2)">A$</span>
-                    <input type="number" class="rc-input" id="rc-custom" value="50" step="10">
+                    <input type="number" class="rc-input" id="rc-custom" value="50" step="10" oninput="updateRcPreview()">
                   </div>
                 </div>
               </div>
@@ -850,7 +890,7 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
                   <div style="font-size:12px;color:var(--text3);margin-top:2px">Applies % on top of total quote</div>
                 </div>
                 <label class="toggle" style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                  <input type="checkbox" id="rc-fuel-active" style="display:none" onchange="toggleFuelLevy(this)">
+                  <input type="checkbox" id="rc-fuel-active" style="display:none" onchange="toggleFuelLevy(this);updateRcPreview()">
                   <div id="toggle-track" style="width:36px;height:20px;background:var(--bg4);border-radius:20px;position:relative;transition:background 0.2s;cursor:pointer" onclick="document.getElementById('rc-fuel-active').click()">
                     <div id="toggle-thumb" style="width:16px;height:16px;background:var(--text3);border-radius:50%;position:absolute;top:2px;left:2px;transition:all 0.2s"></div>
                   </div>
@@ -859,7 +899,7 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
               </div>
               <div style="display:flex;align-items:center;gap:6px;opacity:0.4" id="fuel-levy-field">
                 <div class="info-label" style="margin-bottom:0">Rate:</div>
-                <input type="number" class="rc-input" id="rc-fuel-pct" value="5" step="0.5" style="width:70px">
+                <input type="number" class="rc-input" id="rc-fuel-pct" value="5" step="0.5" style="width:70px" oninput="updateRcPreview()">
                 <span style="font-size:13px;color:var(--text2)">%</span>
               </div>
             </div>
@@ -1043,8 +1083,8 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
         <div class="nb-section-title">Pricing & Payment</div>
         <div class="nb-row cols-2">
           <div>
-            <div class="nb-label">Total (A$)</div>
-            <input class="nb-input" id="nb-total" type="number" min="0" step="0.01" placeholder="0.00">
+            <div class="nb-label">Distance (km)</div>
+            <input class="nb-input" id="nb-km" type="number" min="0" step="1" placeholder="0" oninput="nbRecalculate()">
           </div>
           <div>
             <div class="nb-label">Payment method</div>
@@ -1055,6 +1095,26 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
             </select>
           </div>
         </div>
+        <div class="nb-row" style="margin-bottom:8px">
+          <div>
+            <div class="nb-label" style="margin-bottom:8px">Quote Breakdown</div>
+            <div id="nb-quote-breakdown" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px">
+                <span>Base call-out</span><span id="nbq-base">A$120.00</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px">
+                <span>Km cost</span><span id="nbq-km">A$0.00</span>
+              </div>
+              <div id="nbq-surcharge-row" style="display:none;justify-content:space-between;font-size:12px;color:var(--amber);margin-bottom:4px">
+                <span id="nbq-surcharge-label">Condition surcharge</span><span id="nbq-surcharge">+A$0</span>
+              </div>
+              <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:8px;display:flex;justify-content:space-between;font-family:var(--font-disp);font-size:17px;font-weight:700">
+                <span style="color:var(--text)">Total</span><span id="nbq-total" style="color:var(--red)">A$120.00</span>
+              </div>
+            </div>
+            <input type="hidden" id="nb-total-val" value="120">
+          </div>
+        </div>
         <div class="nb-row cols-2">
           <div>
             <div class="nb-label">Status</div>
@@ -1063,10 +1123,6 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
               <option value="pending_quote">Pending Quote</option>
               <option value="quote_sent">Quote Sent</option>
             </select>
-          </div>
-          <div>
-            <div class="nb-label">Distance (km)</div>
-            <input class="nb-input" id="nb-km" type="number" min="0" step="1" placeholder="0">
           </div>
         </div>
       </div>
@@ -1086,6 +1142,103 @@ tbody td .sub{font-size:11px;color:var(--text3);margin-top:1px}
     <div class="nb-footer">
       <button class="nb-cancel" onclick="closeNewBooking()">Cancel</button>
       <button class="nb-submit" id="nb-submit" onclick="submitNewBooking()">Create Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     QUICK ADD MODAL
+══════════════════════════════════════ -->
+<div class="nb-overlay" id="qa-overlay" onclick="qaOverlayClick(event)">
+  <div class="nb-sheet" id="qa-sheet" style="width:420px">
+    <div class="nb-header">
+      <div class="nb-title" style="font-size:15px">&#9889; Quick Add</div>
+      <div class="nb-close" onclick="closeQuickAdd()">
+        <svg viewBox="0 0 13 13"><line x1="1.5" y1="1.5" x2="11.5" y2="11.5"/><line x1="11.5" y1="1.5" x2="1.5" y2="11.5"/></svg>
+      </div>
+    </div>
+    <div class="nb-body">
+      <div class="nb-err" id="qa-err"></div>
+
+      <div class="nb-section">
+        <div class="nb-section-title">Customer</div>
+        <div class="nb-row cols-2">
+          <div>
+            <div class="nb-label">Name *</div>
+            <input class="nb-input" id="qa-name" type="text" placeholder="John Smith">
+          </div>
+          <div>
+            <div class="nb-label">Phone</div>
+            <input class="nb-input" id="qa-phone" type="tel" placeholder="04XX XXX XXX">
+          </div>
+        </div>
+      </div>
+
+      <div class="nb-section">
+        <div class="nb-section-title">Route</div>
+        <div class="nb-row">
+          <div>
+            <div class="nb-label">Pickup address *</div>
+            <input class="nb-input" id="qa-pickup" type="text" placeholder="123 Main St, Adelaide SA">
+          </div>
+        </div>
+        <div class="nb-row">
+          <div>
+            <div class="nb-label">Dropoff address *</div>
+            <input class="nb-input" id="qa-dropoff" type="text" placeholder="456 Beach Rd, Glenelg SA">
+          </div>
+        </div>
+        <div class="nb-row cols-2">
+          <div>
+            <div class="nb-label">Date *</div>
+            <input class="nb-input" id="qa-date" type="date">
+          </div>
+          <div>
+            <div class="nb-label">Time</div>
+            <input class="nb-input" id="qa-time" type="time">
+          </div>
+        </div>
+      </div>
+
+      <div class="nb-section">
+        <div class="nb-section-title">Bike</div>
+        <div class="nb-row cols-2">
+          <div>
+            <div class="nb-label">Make</div>
+            <input class="nb-input" id="qa-make" type="text" placeholder="Honda">
+          </div>
+          <div>
+            <div class="nb-label">Model</div>
+            <input class="nb-input" id="qa-model" type="text" placeholder="CBR600">
+          </div>
+        </div>
+        <div class="nb-row">
+          <div>
+            <div class="nb-label">Condition</div>
+            <select class="nb-input" id="qa-condition">
+              <option value="running_rideable">Running / Rideable</option>
+              <option value="non_runner">Non-runner</option>
+              <option value="broken_seized">Broken / Seized</option>
+              <option value="custom_part_built">Custom / Part-built</option>
+              <option value="stripped_pieces">Stripped / Pieces</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="nb-section">
+        <div class="nb-section-title">Notes</div>
+        <div class="nb-row">
+          <div>
+            <textarea class="nb-input" id="qa-notes" rows="2" placeholder="Any special instructions..." style="resize:vertical"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="nb-footer">
+      <button class="nb-cancel" onclick="closeQuickAdd()">Cancel</button>
+      <button id="qa-submit" class="nb-submit" style="background:var(--green)" onclick="submitQuickAdd()">Create Now</button>
     </div>
   </div>
 </div>
@@ -1269,19 +1422,7 @@ async function loadBookings() {
   updateMetrics();
 }
 
-async function updateStatus(val) {
-  if (!currentDetailId || !_supabase) return;
-  const { error } = await _supabase
-    .from('bookings')
-    .update({ status: val, updated_at: new Date().toISOString() })
-    .eq('id', currentDetailId);
-  if (error) { showToast('Status update failed', 'error'); return; }
-  const b = BOOKINGS.find(x => x.id === currentDetailId);
-  if (b) b.status = val;
-  showToast('Status updated to ' + (STATUS_LABELS[val]?.label || val), 'success');
-  renderBookingsTable();
-  updateMetrics();
-}
+// updateStatus is defined below near renderDetail
 
 async function saveRateCard() {
   if (!_supabase) { showToast('Rate card saved (offline mode)', 'success'); return; }
@@ -1334,6 +1475,7 @@ async function loadRateCard() {
   if (data.bank_name)    document.getElementById('rc-bank-name').value    = data.bank_name;
   if (data.bank_bsb)     document.getElementById('rc-bank-bsb').value     = data.bank_bsb;
   if (data.bank_account) document.getElementById('rc-bank-account').value = data.bank_account;
+  updateRcPreview();
 }
 
 function showLoadingState(loading) {
@@ -1684,13 +1826,13 @@ function renderDetail(id){
         <div class="detail-card-header"><div class="detail-card-title">Actions</div></div>
         <div class="detail-card-body" style="padding:10px 16px">
           <div class="action-btns">
-            ${b.status==='quote_sent'?`<button class="action-btn primary" onclick="showToast('Booking confirmed — calendar blocks created','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 7 5.5 10.5 12 3"/></svg>Confirm Booking</button>`:''}
-            ${b.status==='confirmed'?`<button class="action-btn primary" onclick="showToast('Job marked as in transit','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h10M8 3l4 4-4 4"/></svg>Mark In Transit</button>`:''}
-            ${b.status==='in_transit'?`<button class="action-btn primary" onclick="showToast('Job marked as complete — invoice sent','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 7 5.5 10.5 12 3"/></svg>Mark Complete</button>`:''}
-            <button class="action-btn" onclick="showToast('Quote email resent','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><polyline points="1 3 7 8.5 13 3"/></svg>Resend Quote</button>
-            <button class="action-btn" onclick="showToast('Invoice sent to ${b.email}','success')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="8" x2="10" y2="8"/></svg>Send Invoice</button>
+            ${['pending_quote','quote_sent'].includes(b.status)?`<button class="action-btn primary" onclick="updateStatus('confirmed')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 7 5.5 10.5 12 3"/></svg>Confirm Booking</button>`:''}
+            ${b.status==='confirmed'?`<button class="action-btn primary" onclick="updateStatus('in_transit')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h10M8 3l4 4-4 4"/></svg>Mark In Transit</button>`:''}
+            ${b.status==='in_transit'?`<button class="action-btn primary" onclick="updateStatus('completed')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 7 5.5 10.5 12 3"/></svg>Mark Complete</button>`:''}
+            <button class="action-btn" onclick="showToast('Resend quote — coming soon','')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><polyline points="1 3 7 8.5 13 3"/></svg>Resend Quote</button>
+            <button class="action-btn" onclick="showToast('Invoice — coming soon','')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="8" x2="10" y2="8"/></svg>Send Invoice</button>
             <a href="https://www.google.com/maps/dir/Roseworthy+SA/${encodeURIComponent(b.pickup)}/${encodeURIComponent(b.dropoff)}" target="_blank" class="action-btn" style="text-decoration:none;color:var(--text)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="6" r="2.5"/><path d="M7 1C4.2 1 2 3.2 2 6c0 4 5 8 5 8s5-4 5-8c0-2.8-2.2-5-5-5z"/></svg>Open Route in Maps</button>
-            <button class="action-btn" style="color:var(--red);border-color:var(--red-border)" onclick="showToast('Booking cancelled','error')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>Cancel Booking</button>
+            <button class="action-btn" style="color:var(--red);border-color:var(--red-border)" onclick="updateStatus('cancelled')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>Cancel Booking</button>
           </div>
         </div>
       </div>
@@ -1699,10 +1841,21 @@ function renderDetail(id){
   `;
 }
 
-function updateStatus(val){
+async function updateStatus(val){
   if(!currentDetailId) return;
   const b=BOOKINGS.find(x=>x.id===currentDetailId);
-  if(b){ b.status=val; showToast(`Status updated to ${STATUS_LABELS[val]?.label||val}`,'success'); }
+  if(!b) return;
+  b.status=val;
+  const sel=document.getElementById('detail-status-select');
+  if(sel) sel.value=val;
+  if(_supabase){
+    const {error}=await _supabase.from('bookings').update({status:val}).eq('id',currentDetailId);
+    if(error){showToast('Update failed: '+error.message,'error');return;}
+  }
+  showToast('Status \u2192 '+(STATUS_LABELS[val]?.label||val),'success');
+  renderBookingsTable();
+  updateMetrics();
+  renderDetail(currentDetailId);
 }
 
 // ============================================================
@@ -1991,7 +2144,7 @@ function openNewBooking() {
   document.getElementById('nb-bikes-list').innerHTML = '';
   document.getElementById('nb-err').classList.remove('show');
   // Reset all fields
-  ['nb-name','nb-email','nb-phone','nb-pickup','nb-dropoff','nb-time','nb-notes','nb-total','nb-km'].forEach(id => {
+  ['nb-name','nb-email','nb-phone','nb-pickup','nb-dropoff','nb-time','nb-notes','nb-km'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2001,6 +2154,7 @@ function openNewBooking() {
   document.getElementById('nb-submit').disabled = false;
   document.getElementById('nb-submit').textContent = 'Create Booking';
   nbAddBike(); // start with one bike row
+  nbRecalculate();
   document.getElementById('nb-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -2051,7 +2205,7 @@ function nbAddBike() {
       </div>
       <div>
         <div class="nb-label">Condition</div>
-        <select class="nb-input" name="bike-condition">
+        <select class="nb-input" name="bike-condition" oninput="nbRecalculate()">
           <option value="running_rideable">Running / Rideable</option>
           <option value="non_runner">Non-runner</option>
           <option value="broken_seized">Broken / Seized</option>
@@ -2090,7 +2244,7 @@ async function submitNewBooking() {
     condition: row.querySelector('[name="bike-condition"]').value,
   }));
 
-  const totalAud = parseFloat(document.getElementById('nb-total').value) || null;
+  const totalAud = parseFloat(document.getElementById('nb-total-val').value) || null;
   const km       = parseFloat(document.getElementById('nb-km').value) || null;
 
   const btn = document.getElementById('nb-submit');
@@ -2149,6 +2303,184 @@ async function submitNewBooking() {
 }
 
 // ============================================================
+// LIVE QUOTE CALCULATOR (NEW BOOKING MODAL)
+// ============================================================
+function nbRecalculate(){
+  const base    = parseFloat(document.getElementById('rc-base')?.value)      || 120;
+  const kmRate  = parseFloat(document.getElementById('rc-km-loaded')?.value) || 2.20;
+  const surchargeMap = {
+    non_runner:       parseFloat(document.getElementById('rc-non-runner')?.value) || 50,
+    broken_seized:    parseFloat(document.getElementById('rc-seized')?.value)     || 80,
+    stripped_pieces:  parseFloat(document.getElementById('rc-stripped')?.value)   || 100,
+    custom_part_built:parseFloat(document.getElementById('rc-custom')?.value)     || 50,
+  };
+
+  const km = parseFloat(document.getElementById('nb-km')?.value) || 0;
+  const kmCost = km * kmRate;
+
+  // Worst condition across all bike rows
+  const conditions = Array.from(document.querySelectorAll('#nb-bikes-list [name="bike-condition"]')).map(s=>s.value);
+  const conditionSurcharges = conditions.map(c => surchargeMap[c] || 0);
+  const worstSurcharge = conditionSurcharges.length ? Math.max(...conditionSurcharges) : 0;
+  const worstCondition = conditions.find(c => (surchargeMap[c]||0) === worstSurcharge) || '';
+
+  const total = base + kmCost + worstSurcharge;
+
+  // Update breakdown display
+  const el = id => document.getElementById(id);
+  if(el('nbq-base'))   el('nbq-base').textContent   = 'A$' + base.toFixed(2);
+  if(el('nbq-km'))     el('nbq-km').textContent     = 'A$' + kmCost.toFixed(2);
+  if(el('nbq-total'))  el('nbq-total').textContent  = 'A$' + total.toFixed(2);
+
+  const surchargeRow = el('nbq-surcharge-row');
+  if(surchargeRow){
+    if(worstSurcharge > 0){
+      surchargeRow.style.display = 'flex';
+      const labelMap = {
+        non_runner:'Non-runner surcharge',
+        broken_seized:'Broken/seized surcharge',
+        stripped_pieces:'Stripped/pieces surcharge',
+        custom_part_built:'Custom build surcharge',
+      };
+      el('nbq-surcharge-label').textContent = labelMap[worstCondition] || 'Condition surcharge';
+      el('nbq-surcharge').textContent = '+A$' + worstSurcharge.toFixed(0);
+    } else {
+      surchargeRow.style.display = 'none';
+    }
+  }
+
+  if(el('nb-total-val')) el('nb-total-val').value = total.toFixed(2);
+}
+
+// ============================================================
+// QUICK ADD MODAL
+// ============================================================
+function openQuickAdd(){
+  ['qa-name','qa-phone','qa-pickup','qa-dropoff','qa-time','qa-notes'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  document.getElementById('qa-make').value      = '';
+  document.getElementById('qa-model').value     = '';
+  document.getElementById('qa-condition').value = 'running_rideable';
+  document.getElementById('qa-date').value      = new Date().toISOString().split('T')[0];
+  document.getElementById('qa-err').classList.remove('show');
+  document.getElementById('qa-submit').disabled = false;
+  document.getElementById('qa-submit').textContent = 'Create Now';
+  document.getElementById('qa-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeQuickAdd(){
+  document.getElementById('qa-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function qaOverlayClick(e){
+  if(e.target === document.getElementById('qa-overlay')) closeQuickAdd();
+}
+
+async function submitQuickAdd(){
+  const err     = document.getElementById('qa-err');
+  err.classList.remove('show');
+
+  const name    = document.getElementById('qa-name').value.trim();
+  const phone   = document.getElementById('qa-phone').value.trim();
+  const pickup  = document.getElementById('qa-pickup').value.trim();
+  const dropoff = document.getElementById('qa-dropoff').value.trim();
+  const date    = document.getElementById('qa-date').value;
+
+  if(!name || !pickup || !dropoff || !date){
+    err.textContent = 'Name, pickup, dropoff and date are required.';
+    err.classList.add('show');
+    return;
+  }
+
+  const btn = document.getElementById('qa-submit');
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  try {
+    const res = await fetch('/api/bookings/create', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name,
+        email:           'follow_up@casperstransport.com.au',
+        phone:           phone || null,
+        pickup_address:  pickup,
+        dropoff_address: dropoff,
+        pickup_date:     date,
+        pickup_time:     document.getElementById('qa-time').value || null,
+        payment_method:  'follow_up',
+        notes:           document.getElementById('qa-notes').value.trim() || null,
+        bikes: [{
+          make:      document.getElementById('qa-make').value.trim() || null,
+          model:     document.getElementById('qa-model').value.trim() || null,
+          year:      null,
+          type:      'road_motorcycle',
+          condition: document.getElementById('qa-condition').value,
+        }],
+        quote: {total_aud:0, base_rate:0, kmLoaded:0, kmReturn:0},
+        _admin_status: 'confirmed',
+      }),
+    });
+
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Failed to create booking');
+
+    // Patch status to confirmed
+    if(data.bookingId){
+      await fetch(`/api/driver/jobs/${data.bookingId}/status`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({status:'confirmed'}),
+      });
+    }
+
+    closeQuickAdd();
+    showToast('Booking created and confirmed','success');
+    await loadBookings();
+
+  } catch(e){
+    err.textContent = e.message;
+    err.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Create Now';
+  }
+}
+
+// ============================================================
+// RATE CARD PREVIEW
+// ============================================================
+function updateRcPreview(){
+  const v = id => parseFloat(document.getElementById(id)?.value) || 0;
+  const el = id => document.getElementById(id);
+
+  const base    = v('rc-base');
+  const kmL     = v('rc-km-loaded');
+  const kmR     = v('rc-km-return');
+  const multi   = v('rc-multi');
+  const nonR    = v('rc-non-runner');
+  const seized  = v('rc-seized');
+  const stripped= v('rc-stripped');
+  const fuelAct = document.getElementById('rc-fuel-active')?.checked;
+  const fuelPct = v('rc-fuel-pct');
+
+  if(el('rcp-base'))       el('rcp-base').textContent       = 'A$' + base.toFixed(2);
+  if(el('rcp-km-loaded'))  el('rcp-km-loaded').textContent  = 'A$' + kmL.toFixed(2) + '/km';
+  if(el('rcp-km-return'))  el('rcp-km-return').textContent  = 'A$' + kmR.toFixed(2) + '/km';
+  if(el('rcp-multi'))      el('rcp-multi').textContent      = multi.toFixed(0) + '%';
+  if(el('rcp-non-runner')) el('rcp-non-runner').textContent = '+A$' + nonR.toFixed(0);
+  if(el('rcp-seized'))     el('rcp-seized').textContent     = '+A$' + seized.toFixed(0);
+  if(el('rcp-stripped'))   el('rcp-stripped').textContent   = '+A$' + stripped.toFixed(0);
+  if(el('rcp-fuel')){
+    el('rcp-fuel').textContent = fuelAct ? fuelPct.toFixed(1) + '%' : 'Off';
+    el('rcp-fuel').style.color = fuelAct ? 'var(--amber)' : 'var(--text3)';
+  }
+}
+
+// ============================================================
 // INIT
 // ============================================================
 document.getElementById('current-date').textContent=
@@ -2161,6 +2493,7 @@ initCalendar();
   _supabase = await initSupabase();
   await loadBookings();
   await loadRateCard();
+  updateRcPreview();
   subscribeRealtime();
   renderWeekStrip();
   renderCalendar();
