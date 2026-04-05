@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       pickup_date, pickup_time,
       payment_method, notes,
       bikes, quote, needs_review, review_reason,
+      _admin_created,
     } = body;
 
     // ---- 1. Upsert customer ----
@@ -106,86 +107,91 @@ export async function POST(req: NextRequest) {
 
       if (!quoteError) quoteId = quoteData?.id;
 
-      await supabase.from('bookings')
-        .update({ status: 'quote_sent' })
-        .eq('id', bookingId);
+      if (!_admin_created) {
+        await supabase.from('bookings')
+          .update({ status: 'quote_sent' })
+          .eq('id', bookingId);
+      }
     }
 
     // ---- 5. Send quote email ----
-    const resend = getResend();
-    const bikesSummary = bikes.map((b: any) =>
-      `${b.make || ''} ${b.model || ''} ${b.year || ''}`.trim() ||
-      `${b.type.replace(/_/g, ' ')} (${b.condition.replace(/_/g, ' ')})`
-    ).join(', ');
-
-    const quoteTotal = quote?.total ? `A$${quote.total.toFixed(2)}` : 'to be confirmed';
-    const depositAmt = quote?.deposit ? `A$${quote.deposit.toFixed(2)}` : null;
-
-    const acceptUrl   = `${APP_URL}/booking/accept?id=${bookingId}`;
-    const stripeParam = payment_method === 'stripe_deposit' ? '&method=stripe' : '';
-
-    await resend.emails.send({
-      from:    'Caspers Transport <bookings@casperstransport.com.au>',
-      to:      [email],
-      subject: `Your transport quote — ${quoteTotal}`,
-      html:    buildQuoteEmail({
-        name, bikesSummary, pickup_address, dropoff_address,
-        pickup_date, quoteTotal, depositAmt,
-        payment_method, acceptUrl: acceptUrl + stripeParam,
-        quote,
-      }),
-    });
-
-    // Send admin notification
-    await resend.emails.send({
-      from:    'Caspers Bookings <bookings@casperstransport.com.au>',
-      to:      [ADMIN_EMAIL],
-      subject: `New booking request — ${name}`,
-      html:    buildAdminNotificationEmail({
-        name, email, phone, bikesSummary,
-        pickup_address, dropoff_address, pickup_date,
-        quoteTotal, payment_method, bookingId, notes,
-      }),
-    });
-
-    // Log comms
-    await supabase.from('comms_log').insert([
-      { booking_id: bookingId, comms_type: 'quote_email',       status: 'sent', recipient: email,       sent_at: new Date().toISOString() },
-      { booking_id: bookingId, comms_type: 'admin_notification', status: 'sent', recipient: ADMIN_EMAIL, sent_at: new Date().toISOString() },
-    ]);
-
-    // ---- 6. Stripe checkout (non-fatal — falls back to follow-up if keys not set) ----
     let stripeUrl: string | null = null;
-    if (payment_method === 'stripe_deposit' && quote?.deposit > 0) {
-      try {
-        const stripe = getStripe();
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ['card'],
-          mode:                 'payment',
-          line_items: [{
-            price_data: {
-              currency:     'aud',
-              product_data: {
-                name:        `Caspers Transport — Deposit`,
-                description: `Transport deposit for ${bikesSummary}. Pickup: ${pickup_date}`,
+
+    if (!_admin_created) {
+      const resend = getResend();
+      const bikesSummary = bikes.map((b: any) =>
+        `${b.make || ''} ${b.model || ''} ${b.year || ''}`.trim() ||
+        `${b.type.replace(/_/g, ' ')} (${b.condition.replace(/_/g, ' ')})`
+      ).join(', ');
+
+      const quoteTotal = quote?.total ? `A$${quote.total.toFixed(2)}` : 'to be confirmed';
+      const depositAmt = quote?.deposit ? `A$${quote.deposit.toFixed(2)}` : null;
+
+      const acceptUrl   = `${APP_URL}/booking/accept?id=${bookingId}`;
+      const stripeParam = payment_method === 'stripe_deposit' ? '&method=stripe' : '';
+
+      await resend.emails.send({
+        from:    'Caspers Transport <bookings@casperstransport.com.au>',
+        to:      [email],
+        subject: `Your transport quote — ${quoteTotal}`,
+        html:    buildQuoteEmail({
+          name, bikesSummary, pickup_address, dropoff_address,
+          pickup_date, quoteTotal, depositAmt,
+          payment_method, acceptUrl: acceptUrl + stripeParam,
+          quote,
+        }),
+      });
+
+      // Send admin notification
+      await resend.emails.send({
+        from:    'Caspers Bookings <bookings@casperstransport.com.au>',
+        to:      [ADMIN_EMAIL],
+        subject: `New booking request — ${name}`,
+        html:    buildAdminNotificationEmail({
+          name, email, phone, bikesSummary,
+          pickup_address, dropoff_address, pickup_date,
+          quoteTotal, payment_method, bookingId, notes,
+        }),
+      });
+
+      // Log comms
+      await supabase.from('comms_log').insert([
+        { booking_id: bookingId, comms_type: 'quote_email',       status: 'sent', recipient: email,       sent_at: new Date().toISOString() },
+        { booking_id: bookingId, comms_type: 'admin_notification', status: 'sent', recipient: ADMIN_EMAIL, sent_at: new Date().toISOString() },
+      ]);
+
+      // ---- 6. Stripe checkout (non-fatal — falls back to follow-up if keys not set) ----
+      if (payment_method === 'stripe_deposit' && quote?.deposit > 0) {
+        try {
+          const stripe = getStripe();
+          const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            mode:                 'payment',
+            line_items: [{
+              price_data: {
+                currency:     'aud',
+                product_data: {
+                  name:        `Caspers Transport — Deposit`,
+                  description: `Transport deposit for ${bikesSummary}. Pickup: ${pickup_date}`,
+                },
+                unit_amount: Math.round(quote.deposit * 100),
               },
-              unit_amount: Math.round(quote.deposit * 100),
-            },
-            quantity: 1,
-          }],
-          metadata: { booking_id: bookingId },
-          success_url: `${APP_URL}/booking/payment-success?booking=${bookingId}`,
-          cancel_url:  `${APP_URL}/booking/payment-cancelled?booking=${bookingId}`,
-          customer_email: email,
-        });
+              quantity: 1,
+            }],
+            metadata: { booking_id: bookingId },
+            success_url: `${APP_URL}/booking/payment-success?booking=${bookingId}`,
+            cancel_url:  `${APP_URL}/booking/payment-cancelled?booking=${bookingId}`,
+            customer_email: email,
+          });
 
-        stripeUrl = session.url;
+          stripeUrl = session.url;
 
-        await supabase.from('bookings')
-          .update({ stripe_payment_id: session.id })
-          .eq('id', bookingId);
-      } catch (stripeErr: any) {
-        console.error('Stripe checkout failed (non-fatal):', stripeErr.message);
+          await supabase.from('bookings')
+            .update({ stripe_payment_id: session.id })
+            .eq('id', bookingId);
+        } catch (stripeErr: any) {
+          console.error('Stripe checkout failed (non-fatal):', stripeErr.message);
+        }
       }
     }
 
