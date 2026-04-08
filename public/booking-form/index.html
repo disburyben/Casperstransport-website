@@ -919,13 +919,21 @@ function setupNominatimAutocomplete(inputId, onSelect) {
   }
 
   function selectResult(r) {
-    input.value = r.display_name;
+    // Preserve house number if user typed one and Nominatim omitted it
+    const userTyped   = input.value.trim();
+    const houseMatch  = userTyped.match(/^(\d+[a-zA-Z]?)\s/);
+    const hasNumber   = /^\d/.test(r.display_name);
+    const fullAddress = (houseMatch && !hasNumber)
+      ? houseMatch[1] + ' ' + r.display_name
+      : r.display_name;
+
+    input.value = fullAddress;
     closeDropdown();
     clearAddressError(inputId);
     onSelect({
-      lat: parseFloat(r.lat),
-      lng: parseFloat(r.lon),
-      address: r.display_name,
+      lat:     parseFloat(r.lat),
+      lng:     parseFloat(r.lon),
+      address: fullAddress,
     });
   }
 
