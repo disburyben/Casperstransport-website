@@ -8,7 +8,7 @@ let _resend: Resend | null = null;
 
 export function getResend(): Resend {
   if (!_resend) {
-    _resend = new Resend(process.env.RESEND_API_KEY || 're_test_placeholder');
+    _resend = new Resend((process.env.RESEND_API_KEY || 're_test_placeholder').trim());
   }
   return _resend;
 }

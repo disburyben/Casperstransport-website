@@ -9,7 +9,7 @@ const HOME_BASE_LAT = -34.5213;
 const HOME_BASE_LNG = 138.7492; // Roseworthy SA
 
 const SA_REVIEW_KM_THRESHOLD = 350;
-const ORS_API_KEY = process.env.ORS_API_KEY!;
+const ORS_API_KEY = process.env.ORS_API_KEY!.trim();
 
 // Validate coordinates are within South Australia
 function isWithinSA(lat: number, lng: number): boolean {
