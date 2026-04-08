@@ -30,25 +30,30 @@ async function geocode(address: string): Promise<{ lat: number; lng: number } | 
   return { lat: parseFloat(result.lat), lng: parseFloat(result.lon) };
 }
 
-// Get road distance in metres and duration in seconds between two points via ORS
+// Get road distance in metres and duration in seconds — OSRM primary, ORS fallback
 async function getRouteMetrics(
   fromLat: number, fromLng: number,
   toLat: number, toLng: number
 ): Promise<{ distanceM: number; durationS: number }> {
-  const url = 'https://api.openrouteservice.org/v2/directions/driving-car';
-  const res = await fetch(url, {
+  // Try OSRM first (no API key, no rate limit)
+  try {
+    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=false`;
+    const res  = await fetch(osrmUrl, { headers: { 'User-Agent': 'CaspersTransport/1.0 (benjamin@havocsolutions.au)' } });
+    const data = await res.json();
+    const route = data?.routes?.[0];
+    if (route) return { distanceM: route.distance, durationS: route.duration };
+  } catch (_) { /* fall through to ORS */ }
+
+  // Fallback: ORS
+  const orsUrl = 'https://api.openrouteservice.org/v2/directions/driving-car';
+  const res = await fetch(orsUrl, {
     method: 'POST',
-    headers: {
-      'Authorization': ORS_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      coordinates: [[fromLng, fromLat], [toLng, toLat]],
-    }),
+    headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ coordinates: [[fromLng, fromLat], [toLng, toLat]] }),
   });
   const data = await res.json();
   const summary = data?.routes?.[0]?.summary;
-  if (!summary) throw new Error('ORS route calculation failed');
+  if (!summary) throw new Error('Route calculation failed');
   return { distanceM: summary.distance, durationS: summary.duration };
 }
 
