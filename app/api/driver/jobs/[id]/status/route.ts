@@ -8,7 +8,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const VALID_STATUSES = ['confirmed', 'in_transit', 'completed', 'cancelled'];
+// Drivers can only advance a job — they cannot cancel or revert
+const VALID_STATUSES = ['in_transit', 'completed'];
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const token  = req.cookies.get('driver_token')?.value;

@@ -587,8 +587,12 @@ function markComplete(id) {
   render();
 }
 async function patchStatus(id,status) {
-  try { await fetch(`/api/driver/jobs/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})}); }
-  catch(e){}
+  try {
+    const res = await fetch(`/api/driver/jobs/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    if (!res.ok) { const d = await res.json().catch(()=>{}); showToast(d?.error || 'Status update failed — try again','error'); }
+  } catch(e) {
+    showToast('Network error — status not saved','error');
+  }
 }
 
 // ── SIGNATURE MODAL ───────────────────────────

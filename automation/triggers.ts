@@ -29,8 +29,10 @@ export const ADMIN_EMAIL    = 'admin@casperstransport.com.au';
 export const FROM_EMAIL     = 'Caspers Transport <bookings@casperstransport.com.au>';
 
 export function validateCronSecret(req: Request): boolean {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) return false; // refuse all if secret not configured
   const secret = req.headers.get('x-cron-secret') || req.headers.get('authorization')?.replace('Bearer ', '');
-  return secret === process.env.CRON_SECRET;
+  return !!secret && secret === cronSecret;
 }
 
 // Returns booking IDs that have already had a given comms type sent successfully.

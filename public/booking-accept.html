@@ -134,7 +134,7 @@
         <div class="detail-row"><span>Pickup</span><strong>${b.pickup_address || '—'}</strong></div>
         <div class="detail-row"><span>Dropoff</span><strong>${b.dropoff_address || '—'}</strong></div>
         <div class="detail-row"><span>Date</span><strong>${date}</strong></div>
-        <div class="detail-row"><span>Payment</span><strong>${b.payment_method === 'stripe_deposit' ? 'Deposit paid' : 'Pay on day'}</strong></div>
+        <div class="detail-row"><span>Payment</span><strong>${b.payment_method === 'stripe_deposit' ? 'Deposit via Stripe' : 'Team to follow up'}</strong></div>
       `;
     }
 

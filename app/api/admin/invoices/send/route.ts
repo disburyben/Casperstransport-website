@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   const invoiceNum  = makeInvoiceNumber(booking.id);
   const invoiceDate = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  const resend = new Resend(process.env.RESEND_API_KEY!);
+  const resend = new Resend((process.env.RESEND_API_KEY || '').trim());
   await resend.emails.send({
     from:    FROM_EMAIL,
     to:      [customer.email],

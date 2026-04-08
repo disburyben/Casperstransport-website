@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     ? Math.floor((Date.now() - new Date(invoiceLog.sent_at).getTime()) / 86_400_000)
     : 0;
 
-  const resend = new Resend(process.env.RESEND_API_KEY!);
+  const resend = new Resend((process.env.RESEND_API_KEY || '').trim());
   await resend.emails.send({
     from:    FROM_EMAIL,
     to:      [customer.email],

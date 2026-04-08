@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       quotes ( total_aud, version )
     `)
     .eq('status', 'completed')
-    .eq('invoice_paid', false);
+    .neq('invoice_paid', true);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!bookings?.length) return NextResponse.json({ sent: 0, message: 'No unpaid invoices' });
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     bankBsb: rc?.bank_bsb || null, bankAccount: rc?.bank_account || null,
   };
 
-  const resend  = new Resend(process.env.RESEND_API_KEY!);
+  const resend  = new Resend((process.env.RESEND_API_KEY || '').trim());
   const results = [];
   const now     = Date.now();
 
